@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="csrf-token" content="{{ csrf_token() }}">
+
+		<title>{{ config('app.name', 'Laravel') }} — Admin</title>
+
+		<!-- Fonts -->
+		<link rel="preconnect" href="https://fonts.bunny.net">
+		<link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+
+		<!-- Scripts -->
+		@vite(['resources/css/app.css', 'resources/js/app.js'])
+	</head>
+	<body class="font-sans antialiased" x-data="{ 
+		sidebarOpen: false, 
+		sidebarCollapsed: false, 
+		darkMode: false,
+		init() {
+			// Load sidebar state from localStorage
+			const saved = localStorage.getItem('adminSidebarCollapsed');
+			if (saved !== null) {
+				this.sidebarCollapsed = saved === 'true';
+			}
+			// On desktop, sidebar should be open by default
+			if (window.innerWidth >= 768) {
+				this.sidebarOpen = true;
+			}
+			// Load dark mode preference
+			const savedTheme = localStorage.getItem('theme');
+			if (savedTheme === 'dark') {
+				this.darkMode = true;
+				document.documentElement.classList.add('dark');
+			} else if (savedTheme === 'light') {
+				this.darkMode = false;
+				document.documentElement.classList.remove('dark');
+			} else {
+				// Default to system preference
+				this.darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				if (this.darkMode) {
+					document.documentElement.classList.add('dark');
+				}
+			}
+		},
+		toggleSidebar() {
+			this.sidebarCollapsed = !this.sidebarCollapsed;
+			localStorage.setItem('adminSidebarCollapsed', this.sidebarCollapsed);
+		},
+		toggleTheme() {
+			this.darkMode = !this.darkMode;
+			if (this.darkMode) {
+				document.documentElement.classList.add('dark');
+				localStorage.setItem('theme', 'dark');
+			} else {
+				document.documentElement.classList.remove('dark');
+				localStorage.setItem('theme', 'light');
+			}
+		}
+	}">
+		<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
+			<!-- Mobile top bar -->
+			<div class="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+				<button @click="sidebarOpen = true" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+					</svg>
+				</button>
+				<div class="flex items-center gap-3">
+					<!-- Cube icon -->
+					<svg class="h-6 w-6 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
+					</svg>
+					<span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Admin</span>
+				</div>
+				<!-- Theme toggle for mobile -->
+				<button onclick="toggleDarkMode()" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle Theme" id="mobileThemeBtn">
+					<svg id="mobileThemeIcon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+					</svg>
+				</button>
+				<!-- Country selector for mobile -->
+				<div class="flex items-center gap-2">
+					<select onchange="window.location.href='?country=' + this.value" class="rounded border-gray-300 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+						@php
+							$countries = \App\Models\Country::where('name', '!=', 'Global')->orderBy('name')->get();
+							$currentCountryId = session('current_country_id');
+						@endphp
+						<option value="0" {{ $currentCountryId == 0 || !$currentCountryId ? 'selected' : '' }}>
+							Global
+						</option>
+						@foreach($countries as $country)
+							<option value="{{ $country->id }}" {{ $currentCountryId == $country->id ? 'selected' : '' }}>
+								{{ $country->name }}
+							</option>
+						@endforeach
+					</select>
+				</div>
+				<a href="{{ route('dashboard') }}" class="text-sm text-indigo-600 dark:text-indigo-400">App</a>
+			</div>
+
+			<div class="flex">
+				<!-- Sidebar -->
+				<aside
+					class="fixed inset-y-0 left-0 z-30 w-72 transform transition-all duration-300 md:transform-none md:static bg-gradient-to-b from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 border-r border-slate-700 dark:border-slate-800 overflow-y-auto"
+					:class="{ 
+						'-translate-x-full': !sidebarOpen,
+						'md:w-72': !sidebarCollapsed,
+						'md:w-20': sidebarCollapsed
+					}"
+					x-cloak
+				>
+					<div class="flex h-full flex-col justify-between p-4">
+						<div>
+							<div class="hidden md:flex items-center justify-center px-2 pb-6 border-b border-slate-700/50" :class="{ 'justify-start': !sidebarCollapsed }">
+								<a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 group" :class="{ 'justify-center': sidebarCollapsed }">
+									<svg class="h-7 w-7 text-blue-400 shrink-0 group-hover:text-blue-300 transition-colors" viewBox="0 0 24 24" fill="currentColor">
+										<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
+									</svg>
+									<span class="text-lg font-bold text-white whitespace-nowrap group-hover:text-blue-300 transition-colors" x-show="!sidebarCollapsed" x-transition>Admin</span>
+								</a>
+							</div>
+
+							<nav class="space-y-2 pt-6">
+								<a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Dashboard">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12l9-9 9 9h-2v8a2 2 0 0 1-2 2h-4v-6H9v6H7a2 2 0 0 1-2-2v-8z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Dashboard</span>
+								</a>
+								<a href="{{ route('products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Products">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Products</span>
+								</a>
+								<a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Invoices">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>
+								</a>
+								<a href="{{ route('ads-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Ads</span>
+								</a>
+								<a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Settings">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Settings</span>
+								</a>
+							</nav>
+						</div>
+
+						<div class="pt-4 mt-6 border-t border-slate-700/50 space-y-2">
+							<a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200" :class="{ 'justify-center': sidebarCollapsed }" title="Profile">
+								<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z"/></svg>
+								<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Profile</span>
+							</a>
+							<form method="POST" action="{{ route('logout') }}">
+								@csrf
+								<button type="submit" class="w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-red-500/20 transition-all duration-200" :class="{ 'justify-center': sidebarCollapsed }" title="Logout">
+									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3h-8a2 2 0 0 0-2 2v3h2V5h8v14h-8v-3h-2v3a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>
+									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Logout</span>
+								</button>
+							</form>
+						</div>
+					</div>
+
+					<!-- Close button for mobile -->
+					<button @click="sidebarOpen = false" class="md:hidden absolute top-3 right-3 p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+					</button>
+				</aside>
+
+				<!-- Overlay for mobile -->
+				<div @click="sidebarOpen = false" x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-20 bg-black/40 md:hidden"></div>
+
+				<!-- Content -->
+				<main class="flex-1 min-h-screen">
+					<!-- Header slot if provided -->
+					@isset($header)
+						<header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+							<div class="px-4 py-4 sm:px-6 lg:px-8 flex items-center gap-4">
+								<!-- Sidebar toggle button for desktop -->
+								<button @click="toggleSidebar()" class="hidden md:flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Toggle Sidebar">
+									<svg x-show="!sidebarCollapsed" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+									</svg>
+									<svg x-show="sidebarCollapsed" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+									</svg>
+								</button>
+								<div class="flex-1">
+									{{ $header }}
+								</div>
+								<!-- Theme toggle for desktop -->
+								<button onclick="toggleDarkMode()" class="hidden md:flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Toggle Theme" id="desktopThemeBtn">
+									<svg id="desktopThemeIcon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+									</svg>
+								</button>
+								<!-- Country selector for desktop -->
+								<div class="hidden md:flex items-center gap-2">
+									<select onchange="window.location.href='?country=' + this.value" class="rounded border-gray-300 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+										@php
+											$countries = \App\Models\Country::where('name', '!=', 'Global')->orderBy('name')->get();
+											$currentCountryId = session('current_country_id');
+										@endphp
+										<option value="0" {{ $currentCountryId == 0 || !$currentCountryId ? 'selected' : '' }}>
+											Global
+										</option>
+										@foreach($countries as $country)
+											<option value="{{ $country->id }}" {{ $currentCountryId == $country->id ? 'selected' : '' }}>
+												{{ $country->name }}
+											</option>
+										@endforeach
+									</select>
+								</div>
+							</div>
+						</header>
+					@else
+						<!-- If no header, add toggle button in a small header bar -->
+						<div class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+							<div class="px-4 py-3 sm:px-6 lg:px-8">
+								<button @click="toggleSidebar()" class="hidden md:flex p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Toggle Sidebar">
+									<svg x-show="!sidebarCollapsed" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
+									</svg>
+									<svg x-show="sidebarCollapsed" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+									</svg>
+								</button>
+							</div>
+						</div>
+					@endisset
+
+					<div class="p-4 sm:p-6 lg:p-8">
+						{{ $slot }}
+					</div>
+				</main>
+			</div>
+		</div>
+		<script>
+			function toggleDarkMode() {
+				const isDark = document.documentElement.classList.contains('dark');
+				const mobileIcon = document.getElementById('mobileThemeIcon');
+				const desktopIcon = document.getElementById('desktopThemeIcon');
+				
+				// SVG paths
+				const moonPath = 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
+				const sunPath = 'M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+				
+				if (isDark) {
+					// Switch to light mode
+					document.documentElement.classList.remove('dark');
+					localStorage.setItem('theme', 'light');
+					if (mobileIcon) mobileIcon.querySelector('path').setAttribute('d', moonPath);
+					if (desktopIcon) desktopIcon.querySelector('path').setAttribute('d', moonPath);
+				} else {
+					// Switch to dark mode
+					document.documentElement.classList.add('dark');
+					localStorage.setItem('theme', 'dark');
+					if (mobileIcon) mobileIcon.querySelector('path').setAttribute('d', sunPath);
+					if (desktopIcon) desktopIcon.querySelector('path').setAttribute('d', sunPath);
+				}
+			}
+			
+			// Initialize theme on page load
+			document.addEventListener('DOMContentLoaded', function() {
+				const savedTheme = localStorage.getItem('theme');
+				const moonPath = 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
+				const sunPath = 'M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
+				const mobileIcon = document.getElementById('mobileThemeIcon');
+				const desktopIcon = document.getElementById('desktopThemeIcon');
+				
+				if (document.documentElement.classList.contains('dark')) {
+					if (mobileIcon) mobileIcon.querySelector('path').setAttribute('d', sunPath);
+					if (desktopIcon) desktopIcon.querySelector('path').setAttribute('d', sunPath);
+				} else {
+					if (mobileIcon) mobileIcon.querySelector('path').setAttribute('d', moonPath);
+					if (desktopIcon) desktopIcon.querySelector('path').setAttribute('d', moonPath);
+				}
+			});
+		</script>
+	</body>
+	<!-- Alpine for sidebar toggling (already available via app.js if using Breeze bootstrap.js) -->
+</html>
+
+
