@@ -39,10 +39,11 @@
 					<table class="min-w-full text-sm">
 						<thead>
 							<tr class="text-left text-gray-500">
-								<th class="py-2">{{ __('Date') }}</th>
+								<th class="py-2">{{ __('Date Range') }}</th>
 								<th class="py-2">{{ __('Name') }}</th>
 								<th class="py-2">{{ __('Platform') }}</th>
-								<th class="py-2">{{ __('Amount') }}</th>
+								<th class="py-2">{{ __('Products') }}</th>
+								<th class="py-2">{{ __('Total Amount') }}</th>
 								<th class="py-2">{{ __('Country') }}</th>
 								<th class="py-2"></th>
 							</tr>
@@ -50,10 +51,21 @@
 						<tbody class="text-gray-900 dark:text-gray-100">
 							@foreach($campaigns as $a)
 								<tr class="border-t border-gray-200 dark:border-gray-700">
-									<td class="py-2">{{ $a->date->format('Y-m-d') }}</td>
+									<td class="py-2">
+										@if($a->date_from && $a->date_to)
+											{{ $a->date_from->format('Y-m-d') }} - {{ $a->date_to->format('Y-m-d') }}
+										@else
+											-
+										@endif
+									</td>
 									<td class="py-2">{{ $a->name }}</td>
-									<td class="py-2">{{ $a->platform }}</td>
-									<td class="py-2">{{ number_format($a->amount_spent, 2) }}</td>
+									<td class="py-2">{{ $a->platform->name ?? '-' }}</td>
+									<td class="py-2">
+										@foreach($a->products as $product)
+											<div class="text-xs">{{ $product->name }}: {{ number_format($product->pivot->amount_spent, 2) }}</div>
+										@endforeach
+									</td>
+									<td class="py-2">{{ number_format($a->total_amount_spent, 2) }}</td>
 									<td class="py-2">{{ $a->country->name }}</td>
 									<td class="py-2 text-right space-x-2">
 										<a href="{{ route('ads-campaigns.edit', $a) }}" class="text-indigo-600 hover:underline">{{ __('Edit') }}</a>

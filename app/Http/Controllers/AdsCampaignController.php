@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdsCampaign;
+use App\Models\AdsPlatform;
 use App\Models\Country;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class AdsCampaignController extends Controller
@@ -17,14 +19,14 @@ class AdsCampaignController extends Controller
 		$from = $request->input('from');
 		$to = $request->input('to');
 
-		$query = AdsCampaign::query()
+		$query = AdsCampaign::with(['platform', 'country', 'products'])
 			->when($countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-			->orderByDesc('date');
+			->when($from, fn($q) => $q->whereDate('date_from', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('date_to', '<=', $to))
+			->orderByDesc('date_from');
 
 		$campaigns = $query->paginate(15)->withQueryString();
-		$totalSpent = (clone $query)->sum('amount_spent');
+		$totalSpent = (clone $query)->get()->sum('total_amount_spent');
 		$countries = Country::orderBy('name')->get();
 
 		return view('ads.index', compact('campaigns', 'totalSpent', 'countries', 'countryId', 'from', 'to'));
@@ -36,7 +38,9 @@ class AdsCampaignController extends Controller
 	public function create()
 	{
 		$countries = Country::orderBy('name')->get();
-		return view('ads.create', compact('countries'));
+		$platforms = AdsPlatform::where('is_active', true)->orderBy('name')->get();
+		$products = Product::orderBy('name')->get();
+		return view('ads.create', compact('countries', 'platforms', 'products'));
 	}
 
 	/**
@@ -45,14 +49,30 @@ class AdsCampaignController extends Controller
 	public function store(Request $request)
 	{
 		$data = $request->validate([
-			'name' => 'required|string|max:255',
-			'platform' => 'required|string|max:50',
-			'amount_spent' => 'required|numeric|min:0',
+			'platform_id' => 'required|exists:ads_platforms,id',
 			'country_id' => 'required|exists:countries,id',
-			'date' => 'required|date',
-			'notes' => 'nullable|string',
+			'date_from' => 'required|date',
+			'date_to' => 'required|date|after_or_equal:date_from',
+			'products' => 'required|array|min:1',
+			'products.*.id' => 'required|exists:products,id',
+			'products.*.amount_spent' => 'required|numeric|min:0',
 		]);
-		AdsCampaign::create($data);
+
+		$campaign = AdsCampaign::create([
+			'name' => 'Campaign ' . now()->format('Y-m-d H:i'),
+			'platform_id' => $data['platform_id'],
+			'country_id' => $data['country_id'],
+			'date_from' => $data['date_from'],
+			'date_to' => $data['date_to'],
+		]);
+
+		// Attach products with amount spent
+		$productsData = [];
+		foreach ($data['products'] as $product) {
+			$productsData[$product['id']] = ['amount_spent' => $product['amount_spent']];
+		}
+		$campaign->products()->attach($productsData);
+
 		return redirect()->route('ads-campaigns.index')->with('status', 'Campaign created.');
 	}
 
@@ -69,8 +89,11 @@ class AdsCampaignController extends Controller
 	 */
 	public function edit(AdsCampaign $adsCampaign)
 	{
+		$adsCampaign->load('products');
 		$countries = Country::orderBy('name')->get();
-		return view('ads.edit', compact('adsCampaign', 'countries'));
+		$platforms = AdsPlatform::where('is_active', true)->orderBy('name')->get();
+		$products = Product::orderBy('name')->get();
+		return view('ads.edit', compact('adsCampaign', 'countries', 'platforms', 'products'));
 	}
 
 	/**
@@ -79,14 +102,29 @@ class AdsCampaignController extends Controller
 	public function update(Request $request, AdsCampaign $adsCampaign)
 	{
 		$data = $request->validate([
-			'name' => 'required|string|max:255',
-			'platform' => 'required|string|max:50',
-			'amount_spent' => 'required|numeric|min:0',
+			'platform_id' => 'required|exists:ads_platforms,id',
 			'country_id' => 'required|exists:countries,id',
-			'date' => 'required|date',
-			'notes' => 'nullable|string',
+			'date_from' => 'required|date',
+			'date_to' => 'required|date|after_or_equal:date_from',
+			'products' => 'required|array|min:1',
+			'products.*.id' => 'required|exists:products,id',
+			'products.*.amount_spent' => 'required|numeric|min:0',
 		]);
-		$adsCampaign->update($data);
+
+		$adsCampaign->update([
+			'platform_id' => $data['platform_id'],
+			'country_id' => $data['country_id'],
+			'date_from' => $data['date_from'],
+			'date_to' => $data['date_to'],
+		]);
+
+		// Sync products with amount spent
+		$productsData = [];
+		foreach ($data['products'] as $product) {
+			$productsData[$product['id']] = ['amount_spent' => $product['amount_spent']];
+		}
+		$adsCampaign->products()->sync($productsData);
+
 		return redirect()->route('ads-campaigns.index')->with('status', 'Campaign updated.');
 	}
 

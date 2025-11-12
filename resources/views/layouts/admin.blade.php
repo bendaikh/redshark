@@ -184,10 +184,26 @@
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>
 								</a>
-								<a href="{{ route('ads-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
-									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
-									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Ads</span>
-								</a>
+								<!-- Ads Section -->
+								<div x-data="{ open: {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'true' : 'false' }} }">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
+										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
+										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Ads</span>
+										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+										</svg>
+									</button>
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
+										<a href="{{ route('ads-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Ads Campaigns">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
+											<span class="whitespace-nowrap">Ads Campaigns</span>
+										</a>
+										<a href="{{ route('ads-platforms.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-platforms.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Manage Platforms">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+											<span class="whitespace-nowrap">Manage Platforms</span>
+										</a>
+									</div>
+								</div>
 								<a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Settings">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Settings</span>
