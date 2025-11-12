@@ -85,7 +85,17 @@
 
 	<script>
 		const products = @json($products);
-		const existingProducts = @json($adsCampaign->products->map(function($p) { return ['id' => $p->id, 'name' => $p->name, 'amount_spent' => $p->pivot->amount_spent, 'leads' => $p->pivot->leads ?? 0]; })->values());
+		@php
+			$existingProductsData = $adsCampaign->products->map(function($p) {
+				return [
+					'id' => $p->id,
+					'name' => $p->name,
+					'amount_spent' => $p->pivot->amount_spent,
+					'leads' => $p->pivot->leads ?? 0
+				];
+			})->values();
+		@endphp
+		const existingProducts = @json($existingProductsData);
 		let productRowIndex = 0;
 		const addedProductIds = new Set();
 
