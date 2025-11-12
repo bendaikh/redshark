@@ -8,10 +8,9 @@ class Product extends Model
 {
 	protected $fillable = [
 		'name',
-		'category',
+		'category_id',
 		'quantity',
 		'cost',
-		'selling_price',
 		'supplier_id',
 		'country_id',
 		'low_stock_threshold',
@@ -19,7 +18,6 @@ class Product extends Model
 
 	protected $casts = [
 		'cost' => 'decimal:2',
-		'selling_price' => 'decimal:2',
 	];
 
 	public function supplier()
@@ -30,6 +28,11 @@ class Product extends Model
 	public function country()
 	{
 		return $this->belongsTo(Country::class);
+	}
+
+	public function category()
+	{
+		return $this->belongsTo(Category::class);
 	}
 
 	public function invoiceItems()

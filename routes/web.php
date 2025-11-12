@@ -7,6 +7,8 @@ use App\Http\Controllers\CountryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AdsCampaignController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -49,6 +51,8 @@ Route::middleware(['auth', 'role:superadmin'])
 		// Core resources (keep route names the same as views expect)
 		Route::resource('countries', CountryController::class);
 		Route::resource('products', ProductController::class);
+		Route::resource('categories', CategoryController::class);
+		Route::resource('suppliers', SupplierController::class);
 		Route::resource('invoices', InvoiceController::class);
 		Route::resource('ads-campaigns', AdsCampaignController::class);
 	});

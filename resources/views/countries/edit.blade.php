@@ -11,28 +11,14 @@
 					@csrf @method('PUT')
 					<div>
 						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Name') }}</label>
-						<input name="name" value="{{ old('name', $country->name) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
-					</div>
-					<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div>
-							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Code') }}</label>
-							<input name="code" value="{{ old('code', $country->code) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
-						</div>
-						<div>
-							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Currency') }}</label>
-							<input name="currency" value="{{ old('currency', $country->currency) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
-						</div>
-						<div>
-							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Timezone') }}</label>
-							<input name="timezone" value="{{ old('timezone', $country->timezone) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
-						</div>
+						<input name="name" value="{{ old('name', $country->name) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
 					</div>
 					<div class="flex items-center">
-						<input type="checkbox" name="active" value="1" {{ $country->active ? 'checked' : '' }} class="me-2">
+						<input type="checkbox" name="active" value="1" {{ old('active', $country->active) ? 'checked' : '' }} class="me-2">
 						<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('Active') }}</label>
 					</div>
 					<div class="pt-4">
-						<button class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Save') }}</button>
+						<button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Save') }}</button>
 						<a href="{{ route('countries.index') }}" class="ms-2 text-gray-600 hover:underline">{{ __('Cancel') }}</a>
 					</div>
 				</form>

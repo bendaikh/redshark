@@ -67,7 +67,7 @@
 								@foreach($lowStock as $p)
 									<tr class="border-t border-gray-200 dark:border-gray-700">
 										<td class="py-2">{{ $p->name }}</td>
-										<td class="py-2">{{ $p->category }}</td>
+										<td class="py-2">{{ $p->category?->name ?? __('None') }}</td>
 										<td class="py-2">{{ $p->quantity }}</td>
 										<td class="py-2">{{ $p->low_stock_threshold }}</td>
 									</tr>

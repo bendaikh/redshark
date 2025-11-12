@@ -36,7 +36,6 @@
 								<th class="py-2">{{ __('Category') }}</th>
 								<th class="py-2">{{ __('Qty') }}</th>
 								<th class="py-2">{{ __('Cost') }}</th>
-								<th class="py-2">{{ __('Sell Price') }}</th>
 								<th class="py-2">{{ __('Supplier') }}</th>
 								<th class="py-2">{{ __('Country') }}</th>
 								<th class="py-2"></th>
@@ -46,10 +45,9 @@
 							@foreach($products as $p)
 								<tr class="border-t border-gray-200 dark:border-gray-700">
 									<td class="py-2">{{ $p->name }}</td>
-									<td class="py-2">{{ $p->category }}</td>
+									<td class="py-2">{{ $p->category?->name ?? __('None') }}</td>
 									<td class="py-2">{{ $p->quantity }}</td>
 									<td class="py-2">{{ number_format($p->cost, 2) }}</td>
-									<td class="py-2">{{ number_format($p->selling_price, 2) }}</td>
 									<td class="py-2">{{ $p->supplier?->name }}</td>
 									<td class="py-2">{{ $p->country?->name }}</td>
 									<td class="py-2 text-right space-x-2">

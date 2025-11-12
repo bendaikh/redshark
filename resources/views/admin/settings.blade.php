@@ -23,22 +23,7 @@
 				<input type="hidden" name="redirect_to" value="settings">
 				<div>
 					<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Name') }}</label>
-					<input name="name" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
-				</div>
-
-				<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div>
-						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Code') }}</label>
-						<input name="code" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required placeholder="e.g. US">
-					</div>
-					<div>
-						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Currency') }}</label>
-						<input name="currency" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" placeholder="e.g. USD">
-					</div>
-					<div>
-						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Timezone') }}</label>
-						<input name="timezone" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" placeholder="e.g. America/New_York">
-					</div>
+					<input name="name" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
 				</div>
 
 				<div class="flex items-center">
@@ -47,7 +32,7 @@
 				</div>
 
 				<div class="pt-2">
-					<button class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Add Country') }}</button>
+					<button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Add Country') }}</button>
 				</div>
 			</form>
 		</div>
@@ -62,8 +47,6 @@
 						<thead>
 							<tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
 								<th class="py-2 pe-2">{{ __('Name') }}</th>
-								<th class="py-2 pe-2">{{ __('Code') }}</th>
-								<th class="py-2 pe-2">{{ __('Currency') }}</th>
 								<th class="py-2 pe-2">{{ __('Active') }}</th>
 								<th class="py-2 pe-2 text-right">{{ __('Actions') }}</th>
 							</tr>
@@ -72,8 +55,6 @@
 							@foreach($countries as $c)
 								<tr class="border-b border-gray-100 dark:border-gray-700/60">
 									<td class="py-2 pe-2">{{ $c->name }}</td>
-									<td class="py-2 pe-2">{{ $c->code }}</td>
-									<td class="py-2 pe-2">{{ $c->currency }}</td>
 									<td class="py-2 pe-2">
 										<span class="px-2 py-1 rounded text-xs {{ $c->active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700' }}">{{ $c->active ? __('Yes') : __('No') }}</span>
 									</td>

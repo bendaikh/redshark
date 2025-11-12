@@ -31,11 +31,12 @@ class CountryController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
-			'code' => 'required|string|max:3|unique:countries,code',
-			'currency' => 'nullable|string|max:10',
-			'timezone' => 'nullable|string|max:100',
-			'active' => 'boolean',
+			'active' => 'nullable|boolean',
 		]);
+		
+		// Handle checkbox: if not present, set to false
+		$data['active'] = $request->has('active') && $request->input('active') == '1';
+		
 		$country = Country::create($data);
 		if ($request->input('redirect_to') === 'settings') {
 			return redirect()->route('admin.settings')->with('status', 'Country created.');
@@ -66,11 +67,12 @@ class CountryController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
-			'code' => 'required|string|max:3|unique:countries,code,'.$country->id,
-			'currency' => 'nullable|string|max:10',
-			'timezone' => 'nullable|string|max:100',
-			'active' => 'boolean',
+			'active' => 'nullable|boolean',
 		]);
+		
+		// Handle checkbox: if not present, set to false
+		$data['active'] = $request->has('active') && $request->input('active') == '1';
+		
 		$country->update($data);
 		if ($request->input('redirect_to') === 'settings') {
 			return redirect()->route('admin.settings')->with('status', 'Country updated.');

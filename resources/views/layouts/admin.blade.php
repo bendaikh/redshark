@@ -127,10 +127,35 @@
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12l9-9 9 9h-2v8a2 2 0 0 1-2 2h-4v-6H9v6H7a2 2 0 0 1-2-2v-8z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Dashboard</span>
 								</a>
-								<a href="{{ route('products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Products">
-									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
-									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Products</span>
-								</a>
+								
+								<!-- Products Section -->
+								<div x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('suppliers.*') ? 'true' : 'false' }} }">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('suppliers.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Products">
+										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
+										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Products</span>
+										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+										</svg>
+									</button>
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
+										<a href="{{ route('products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.index') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Products">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
+											<span class="whitespace-nowrap">Products</span>
+										</a>
+										<a href="{{ route('products.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.create') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Add Product">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+											<span class="whitespace-nowrap">Add Product</span>
+										</a>
+										<a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('categories.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Categories">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/></svg>
+											<span class="whitespace-nowrap">Categories</span>
+										</a>
+										<a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Suppliers">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
+											<span class="whitespace-nowrap">Suppliers</span>
+										</a>
+									</div>
+								</div>
 								<a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Invoices">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>

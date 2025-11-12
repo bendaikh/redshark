@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Country;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -17,11 +18,13 @@ class ProductController extends Controller
 		$countryId = (int) ($request->input('country_id') ?? $request->session()->get('current_country_id'));
 		$q = trim((string) $request->input('q'));
 
-		$products = Product::with(['supplier', 'country'])
+		$products = Product::with(['supplier', 'country', 'category'])
 			->when($countryId, fn($query) => $query->where('country_id', $countryId))
 			->when($q, fn($query) => $query->where(function ($qq) use ($q) {
 				$qq->where('name', 'like', "%{$q}%")
-				   ->orWhere('category', 'like', "%{$q}%");
+				   ->orWhereHas('category', function ($categoryQuery) use ($q) {
+					   $categoryQuery->where('name', 'like', "%{$q}%");
+				   });
 			}))
 			->orderBy('name')
 			->paginate(15)
@@ -38,7 +41,8 @@ class ProductController extends Controller
 	{
 		$suppliers = Supplier::orderBy('name')->get();
 		$countries = Country::orderBy('name')->get();
-		return view('products.create', compact('suppliers', 'countries'));
+		$categories = Category::orderBy('name')->get();
+		return view('products.create', compact('suppliers', 'countries', 'categories'));
 	}
 
 	/**
@@ -48,10 +52,9 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
-			'category' => 'nullable|string|max:255',
+			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
 			'cost' => 'required|numeric|min:0',
-			'selling_price' => 'required|numeric|min:0',
 			'supplier_id' => 'nullable|exists:suppliers,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
@@ -75,7 +78,8 @@ class ProductController extends Controller
 	{
 		$suppliers = Supplier::orderBy('name')->get();
 		$countries = Country::orderBy('name')->get();
-		return view('products.edit', compact('product', 'suppliers', 'countries'));
+		$categories = Category::orderBy('name')->get();
+		return view('products.edit', compact('product', 'suppliers', 'countries', 'categories'));
 	}
 
 	/**
@@ -85,10 +89,9 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
-			'category' => 'nullable|string|max:255',
+			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
 			'cost' => 'required|numeric|min:0',
-			'selling_price' => 'required|numeric|min:0',
 			'supplier_id' => 'nullable|exists:suppliers,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',

@@ -15,8 +15,6 @@
 						<thead>
 							<tr class="text-left text-gray-500">
 								<th class="py-2">{{ __('Name') }}</th>
-								<th class="py-2">{{ __('Code') }}</th>
-								<th class="py-2">{{ __('Currency') }}</th>
 								<th class="py-2">{{ __('Active') }}</th>
 								<th class="py-2"></th>
 							</tr>
@@ -25,8 +23,6 @@
 							@foreach($countries as $c)
 								<tr class="border-t border-gray-200 dark:border-gray-700">
 									<td class="py-2">{{ $c->name }}</td>
-									<td class="py-2">{{ $c->code }}</td>
-									<td class="py-2">{{ $c->currency }}</td>
 									<td class="py-2">
 										<span class="px-2 py-1 rounded text-xs {{ $c->active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700' }}">{{ $c->active ? __('Yes') : __('No') }}</span>
 									</td>

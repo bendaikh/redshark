@@ -16,7 +16,12 @@
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>
 							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Category') }}</label>
-							<input name="category" value="{{ old('category', $product->category) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
+							<select name="category_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
+								<option value="">{{ __('None') }}</option>
+								@foreach($categories as $category)
+									<option value="{{ $category->id }}" {{ $product->category_id === $category->id ? 'selected' : '' }}>{{ $category->name }}</option>
+								@endforeach
+							</select>
 						</div>
 						<div>
 							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Quantity') }}</label>
@@ -29,28 +34,22 @@
 							<input type="number" step="0.01" name="cost" min="0" value="{{ old('cost', $product->cost) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
 						</div>
 						<div>
-							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Selling Price') }}</label>
-							<input type="number" step="0.01" name="selling_price" min="0" value="{{ old('selling_price', $product->selling_price) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
-						</div>
-					</div>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-						<div>
 							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Supplier') }}</label>
 							<select name="supplier_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
 								<option value="">{{ __('None') }}</option>
-								@foreach(\App\Models\Supplier::orderBy('name')->get() as $s)
-									<option value="{{ $s->id }}" {{ $product->supplier_id === $s->id ? 'selected' : '' }}>{{ $s->name }}</option>
+								@foreach($suppliers as $supplier)
+									<option value="{{ $supplier->id }}" {{ $product->supplier_id === $supplier->id ? 'selected' : '' }}>{{ $supplier->name }}</option>
 								@endforeach
 							</select>
 						</div>
-						<div>
-							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
-							<select name="country_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
-								@foreach(\App\Models\Country::orderBy('name')->get() as $c)
-									<option value="{{ $c->id }}" {{ $product->country_id === $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-								@endforeach
-							</select>
-						</div>
+					</div>
+					<div>
+						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
+						<select name="country_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
+							@foreach($countries as $country)
+								<option value="{{ $country->id }}" {{ $product->country_id === $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
+							@endforeach
+						</select>
 					</div>
 					<div>
 						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Low Stock Threshold') }}</label>

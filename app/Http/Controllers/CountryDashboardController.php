@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\AdsCampaign;
@@ -23,16 +24,16 @@ class CountryDashboardController extends Controller
 			->count();
 		$totalSales = 0;
 		$totalStockQty = Product::when($countryId, fn($q) => $q->where('country_id', $countryId))->sum('quantity');
-		$lowStock = Product::when($countryId, fn($q) => $q->where('country_id', $countryId))
+		$lowStock = Product::with('category')
+			->when($countryId, fn($q) => $q->where('country_id', $countryId))
 			->whereColumn('quantity', '<=', 'low_stock_threshold')->get();
 		$adsSpent = AdsCampaign::when($countryId, fn($q) => $q->where('country_id', $countryId))
 			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
 			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
 			->sum('amount_spent');
 		$stockValue = Product::when($countryId, fn($q) => $q->where('country_id', $countryId))
-			->sum(\DB::raw('quantity * cost'));
-		$profitPotential = Product::when($countryId, fn($q) => $q->where('country_id', $countryId))
-			->sum(\DB::raw('quantity * (selling_price - cost)'));
+			->sum(DB::raw('quantity * cost'));
+		$profitPotential = 0; // Profit potential calculation removed as selling_price is no longer used
 
 		return view('dashboards.country', compact(
 			'country',
