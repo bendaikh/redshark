@@ -34,7 +34,7 @@ class AdsCampaign extends Model
 	public function products()
 	{
 		return $this->belongsToMany(Product::class, 'ads_campaign_product')
-			->withPivot('amount_spent')
+			->withPivot('amount_spent', 'leads')
 			->withTimestamps();
 	}
 

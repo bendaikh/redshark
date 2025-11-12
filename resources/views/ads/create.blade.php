@@ -65,7 +65,7 @@
 					</div>
 
 					<div class="border-t border-gray-200 dark:border-gray-700 pt-4">
-						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{{ __('Selected Products & Amount Spent') }}</label>
+						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{{ __('Selected Products, Amount Spent & Leads') }}</label>
 						<div id="productsContainer" class="flex flex-wrap gap-3">
 							<!-- Product tags will be added here -->
 						</div>
@@ -99,7 +99,7 @@
 			}
 		});
 
-		function addProductTag(productId, productName, amountSpent = '') {
+		function addProductTag(productId, productName, amountSpent = '', leads = '') {
 			const container = document.getElementById('productsContainer');
 			const noProductsMessage = document.getElementById('noProductsMessage');
 			
@@ -115,7 +115,10 @@
 			tag.innerHTML = `
 				<span class="font-medium">${productName}</span>
 				<input type="hidden" name="products[${productRowIndex}][id]" value="${productId}">
-				<input type="number" step="0.01" min="0" name="products[${productRowIndex}][amount_spent]" value="${amountSpent}" placeholder="0.00" class="w-24 px-2 py-1 text-sm rounded border-indigo-300 dark:border-indigo-600 dark:bg-indigo-800 dark:text-indigo-100" required>
+				<label class="text-xs text-gray-600 dark:text-gray-400">Amount:</label>
+				<input type="number" step="0.01" min="0" name="products[${productRowIndex}][amount_spent]" value="${amountSpent}" placeholder="0.00" class="w-20 px-2 py-1 text-sm rounded border-indigo-300 dark:border-indigo-600 dark:bg-indigo-800 dark:text-indigo-100" required>
+				<label class="text-xs text-gray-600 dark:text-gray-400">Leads:</label>
+				<input type="number" min="0" name="products[${productRowIndex}][leads]" value="${leads}" placeholder="0" class="w-20 px-2 py-1 text-sm rounded border-indigo-300 dark:border-indigo-600 dark:bg-indigo-800 dark:text-indigo-100">
 				<button type="button" onclick="removeProductTag(${productRowIndex}, ${productId})" class="text-indigo-600 dark:text-indigo-300 hover:text-red-600 dark:hover:text-red-400 font-bold" title="Remove">
 					×
 				</button>

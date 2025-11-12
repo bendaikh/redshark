@@ -56,6 +56,7 @@ class AdsCampaignController extends Controller
 			'products' => 'required|array|min:1',
 			'products.*.id' => 'required|exists:products,id',
 			'products.*.amount_spent' => 'required|numeric|min:0',
+			'products.*.leads' => 'nullable|integer|min:0',
 		]);
 
 		$campaign = AdsCampaign::create([
@@ -66,10 +67,13 @@ class AdsCampaignController extends Controller
 			'date_to' => $data['date_to'],
 		]);
 
-		// Attach products with amount spent
+		// Attach products with amount spent and leads
 		$productsData = [];
 		foreach ($data['products'] as $product) {
-			$productsData[$product['id']] = ['amount_spent' => $product['amount_spent']];
+			$productsData[$product['id']] = [
+				'amount_spent' => $product['amount_spent'],
+				'leads' => $product['leads'] ?? 0,
+			];
 		}
 		$campaign->products()->attach($productsData);
 
@@ -109,6 +113,7 @@ class AdsCampaignController extends Controller
 			'products' => 'required|array|min:1',
 			'products.*.id' => 'required|exists:products,id',
 			'products.*.amount_spent' => 'required|numeric|min:0',
+			'products.*.leads' => 'nullable|integer|min:0',
 		]);
 
 		$adsCampaign->update([
@@ -118,10 +123,13 @@ class AdsCampaignController extends Controller
 			'date_to' => $data['date_to'],
 		]);
 
-		// Sync products with amount spent
+		// Sync products with amount spent and leads
 		$productsData = [];
 		foreach ($data['products'] as $product) {
-			$productsData[$product['id']] = ['amount_spent' => $product['amount_spent']];
+			$productsData[$product['id']] = [
+				'amount_spent' => $product['amount_spent'],
+				'leads' => $product['leads'] ?? 0,
+			];
 		}
 		$adsCampaign->products()->sync($productsData);
 

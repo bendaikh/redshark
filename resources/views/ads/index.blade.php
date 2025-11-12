@@ -62,7 +62,7 @@
 									<td class="py-2">{{ $a->platform->name ?? '-' }}</td>
 									<td class="py-2">
 										@foreach($a->products as $product)
-											<div class="text-xs">{{ $product->name }}: {{ number_format($product->pivot->amount_spent, 2) }}</div>
+											<div class="text-xs">{{ $product->name }}: {{ number_format($product->pivot->amount_spent, 2) }} ({{ $product->pivot->leads ?? 0 }} leads)</div>
 										@endforeach
 									</td>
 									<td class="py-2">{{ number_format($a->total_amount_spent, 2) }}</td>

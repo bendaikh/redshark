@@ -27,10 +27,13 @@ class CountryDashboardController extends Controller
 		$lowStock = Product::with('category')
 			->when($countryId, fn($q) => $q->where('country_id', $countryId))
 			->whereColumn('quantity', '<=', 'low_stock_threshold')->get();
-		$adsSpent = AdsCampaign::when($countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-			->sum('amount_spent');
+		// Calculate ads spent from pivot table
+		$adsSpent = DB::table('ads_campaign_product')
+			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
+			->when($countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('ads_campaigns.date_from', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('ads_campaigns.date_to', '<=', $to))
+			->sum('ads_campaign_product.amount_spent') ?: 0;
 		$stockValue = Product::when($countryId, fn($q) => $q->where('country_id', $countryId))
 			->sum(DB::raw('quantity * cost'));
 		$profitPotential = 0; // Profit potential calculation removed as selling_price is no longer used
