@@ -156,6 +156,30 @@
 										</a>
 									</div>
 								</div>
+								<!-- Sourcing Section -->
+								<div x-data="{ open: {{ request()->routeIs('sourcings.*') || request()->routeIs('shipping-methods.*') ? 'true' : 'false' }} }">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.*') || request()->routeIs('shipping-methods.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Sourcing">
+										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Sourcing</span>
+										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+										</svg>
+									</button>
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
+										<a href="{{ route('sourcings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.index') || request()->routeIs('sourcings.show') || request()->routeIs('sourcings.edit') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Sourcing">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+											<span class="whitespace-nowrap">Sourcing</span>
+										</a>
+										<a href="{{ route('sourcings.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.create') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Sourcing Creation">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+											<span class="whitespace-nowrap">Sourcing Creation</span>
+										</a>
+										<a href="{{ route('shipping-methods.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('shipping-methods.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Shipping Methods">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+											<span class="whitespace-nowrap">Shipping Methods</span>
+										</a>
+									</div>
+								</div>
 								<a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Invoices">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>

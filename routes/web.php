@@ -9,6 +9,8 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AdsCampaignController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SourcingController;
+use App\Http\Controllers\ShippingMethodController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -55,6 +57,8 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('suppliers', SupplierController::class);
 		Route::resource('invoices', InvoiceController::class);
 		Route::resource('ads-campaigns', AdsCampaignController::class);
+		Route::resource('sourcings', SourcingController::class);
+		Route::resource('shipping-methods', ShippingMethodController::class);
 	});
 
 require __DIR__.'/auth.php';

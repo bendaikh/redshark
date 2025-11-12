@@ -39,5 +39,10 @@ class Product extends Model
 	{
 		return $this->hasMany(InvoiceItem::class);
 	}
+
+	public function sourcings()
+	{
+		return $this->hasMany(Sourcing::class);
+	}
 }
 
