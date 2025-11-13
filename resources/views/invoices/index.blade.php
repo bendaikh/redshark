@@ -30,44 +30,55 @@
 					</div>
 				</form>
 			</div>
-			<div class="flex items-center justify-between">
-				<div class="text-gray-500">{{ __('Total') }}: <span class="font-semibold text-gray-900 dark:text-gray-100">{{ number_format($totalAmount, 2) }}</span></div>
+			<div class="flex items-center justify-end">
 				<a href="{{ route('invoices.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">{{ __('Add Invoice') }}</a>
 			</div>
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4">
 				<div class="overflow-x-auto">
 					<table class="min-w-full text-sm">
 						<thead>
-							<tr class="text-left text-gray-500">
-								<th class="py-2">{{ __('Date') }}</th>
-								<th class="py-2">{{ __('Supplier') }}</th>
-								<th class="py-2">{{ __('Invoice #') }}</th>
-								<th class="py-2">{{ __('Amount') }}</th>
-								<th class="py-2">{{ __('Currency') }}</th>
+							<tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+								<th class="py-2">{{ __('Date Range') }}</th>
 								<th class="py-2">{{ __('Country') }}</th>
-								<th class="py-2">{{ __('Attachment') }}</th>
-								<th class="py-2"></th>
+								<th class="py-2">{{ __('Products') }}</th>
+								<th class="py-2">{{ __('Total Revenue') }}</th>
+								<th class="py-2">{{ __('Total Orders') }}</th>
+								<th class="py-2">{{ __('Quantity Sold') }}</th>
+								<th class="py-2 text-right">{{ __('Actions') }}</th>
 							</tr>
 						</thead>
 						<tbody class="text-gray-900 dark:text-gray-100">
 							@foreach($invoices as $inv)
-								<tr class="border-t border-gray-200 dark:border-gray-700">
-									<td class="py-2">{{ $inv->date->format('Y-m-d') }}</td>
-									<td class="py-2">{{ $inv->supplier?->name }}</td>
-									<td class="py-2">{{ $inv->invoice_number }}</td>
-									<td class="py-2">{{ number_format($inv->total_amount, 2) }}</td>
-									<td class="py-2">{{ $inv->currency }}</td>
-									<td class="py-2">{{ $inv->country->name }}</td>
+								@php
+									$totalRevenue = $inv->items->sum('revenue');
+									$totalOrders = $inv->items->sum('total_orders');
+									$quantitySold = $inv->items->sum('quantity_sold');
+									$productsCount = $inv->items->count();
+								@endphp
+								<tr class="border-b border-gray-200 dark:border-gray-700">
 									<td class="py-2">
-										@if($inv->attachment_path)
-											<a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($inv->attachment_path) }}" target="_blank" class="text-indigo-600 hover:underline">{{ __('View') }}</a>
+										@if($inv->date_from || $inv->date_to)
+											{{ $inv->date_from ? $inv->date_from->format('Y-m-d') : 'N/A' }} 
+											@if($inv->date_from && $inv->date_to) - @endif
+											{{ $inv->date_to ? $inv->date_to->format('Y-m-d') : 'N/A' }}
+										@else
+											<span class="text-gray-400">{{ __('Not set') }}</span>
 										@endif
 									</td>
+									<td class="py-2">{{ $inv->country->name }}</td>
+									<td class="py-2">
+										<span class="px-2 py-1 rounded text-xs bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300">
+											{{ $productsCount }} {{ __('product(s)') }}
+										</span>
+									</td>
+									<td class="py-2 font-medium">{{ number_format($totalRevenue, 2) }}</td>
+									<td class="py-2 font-medium">{{ number_format($totalOrders, 0) }}</td>
+									<td class="py-2 font-medium">{{ number_format($quantitySold, 0) }}</td>
 									<td class="py-2 text-right space-x-2">
-										<a href="{{ route('invoices.edit', $inv) }}" class="text-indigo-600 hover:underline">{{ __('Edit') }}</a>
+										<a href="{{ route('invoices.edit', $inv) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ __('Edit') }}</a>
 										<form action="{{ route('invoices.destroy', $inv) }}" method="POST" class="inline">
 											@csrf @method('DELETE')
-											<button type="submit" class="text-red-600 hover:underline" onclick="return confirm('{{ __('Delete this invoice?') }}')">{{ __('Delete') }}</button>
+											<button type="submit" class="text-red-600 dark:text-red-400 hover:underline" onclick="return confirm('{{ __('Delete this invoice?') }}')">{{ __('Delete') }}</button>
 										</form>
 									</td>
 								</tr>

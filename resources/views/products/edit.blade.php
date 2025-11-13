@@ -7,11 +7,21 @@
 	<div class="py-6">
 		<div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-				<form method="POST" action="{{ route('products.update', $product) }}" class="space-y-4">
+				<form method="POST" action="{{ route('products.update', $product) }}" enctype="multipart/form-data" class="space-y-4">
 					@csrf @method('PUT')
 					<div>
 						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Name') }}</label>
 						<input name="name" value="{{ old('name', $product->name) }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
+					</div>
+					<div>
+						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Product Image') }}</label>
+						@if($product->image)
+							<div class="mb-2">
+								<img src="{{ \Illuminate\Support\Facades\Storage::url($product->image) }}" alt="{{ $product->name }}" class="h-20 w-20 object-cover rounded">
+							</div>
+						@endif
+						<input type="file" name="image" accept="image/*" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
+						<p class="mt-1 text-xs text-gray-500">{{ __('Max size: 2MB. Formats: JPEG, PNG, JPG, GIF') }}</p>
 					</div>
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div>

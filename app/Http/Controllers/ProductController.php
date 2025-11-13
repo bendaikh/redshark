@@ -7,6 +7,8 @@ use App\Models\Supplier;
 use App\Models\Country;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -18,7 +20,7 @@ class ProductController extends Controller
 		$countryId = (int) ($request->input('country_id') ?? $request->session()->get('current_country_id'));
 		$q = trim((string) $request->input('q'));
 
-		$products = Product::with(['supplier', 'country', 'category'])
+		$products = Product::with(['country', 'category'])
 			->when($countryId, fn($query) => $query->where('country_id', $countryId))
 			->when($q, fn($query) => $query->where(function ($qq) use ($q) {
 				$qq->where('name', 'like', "%{$q}%")
@@ -52,6 +54,7 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
+			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
 			'cost' => 'required|numeric|min:0',
@@ -59,6 +62,11 @@ class ProductController extends Controller
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);
+
+		if ($request->hasFile('image')) {
+			$data['image'] = $request->file('image')->store('products', 'public');
+		}
+
 		Product::create($data);
 		return redirect()->route('products.index')->with('status', 'Product created.');
 	}
@@ -89,6 +97,7 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
+			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
 			'cost' => 'required|numeric|min:0',
@@ -96,6 +105,14 @@ class ProductController extends Controller
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);
+
+		if ($request->hasFile('image')) {
+			if ($product->image) {
+				Storage::disk('public')->delete($product->image);
+			}
+			$data['image'] = $request->file('image')->store('products', 'public');
+		}
+
 		$product->update($data);
 		return redirect()->route('products.index')->with('status', 'Product updated.');
 	}
@@ -105,8 +122,52 @@ class ProductController extends Controller
 	 */
 	public function destroy(Product $product)
 	{
+		if ($product->image) {
+			Storage::disk('public')->delete($product->image);
+		}
 		$product->delete();
 		return redirect()->route('products.index')->with('status', 'Product deleted.');
+	}
+
+	/**
+	 * Get product statistics data
+	 */
+	public function statistics(Product $product)
+	{
+		$product->load(['invoiceItems', 'adsCampaigns']);
+		
+		// Get time-based data for charts
+		$invoiceItems = $product->invoiceItems()
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->selectRaw('DATE(invoices.date) as date, SUM(total_orders) as orders, SUM(quantity_sold) as sold, SUM(revenue) as revenue')
+			->groupBy('date')
+			->orderBy('date')
+			->get();
+
+		$adsData = DB::table('ads_campaign_product')
+			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
+			->where('ads_campaign_product.product_id', $product->id)
+			->selectRaw('DATE(ads_campaigns.date_from) as date, SUM(ads_campaign_product.amount_spent) as spent, SUM(ads_campaign_product.leads) as leads')
+			->groupBy('date')
+			->orderBy('date')
+			->get();
+
+		return response()->json([
+			'product' => [
+				'id' => $product->id,
+				'name' => $product->name,
+				'total_leads' => $product->total_leads,
+				'total_orders' => $product->total_orders,
+				'total_ads_cost' => $product->total_ads_cost,
+				'delivery_rate' => $product->delivery_rate,
+				'cost_per_lead' => $product->cost_per_lead,
+				'cost_per_delivered' => $product->cost_per_delivered,
+				'quantity' => $product->quantity,
+				'remaining_qty' => $product->remaining_qty,
+			],
+			'invoiceItems' => $invoiceItems,
+			'adsData' => $adsData,
+		]);
 	}
 }
 

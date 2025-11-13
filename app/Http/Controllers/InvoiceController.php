@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
 use App\Models\Supplier;
 use App\Models\Country;
+use App\Models\Product;
+use App\Models\DeliveryFee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
@@ -20,17 +24,24 @@ class InvoiceController extends Controller
 		$to = $request->input('to');
 
 		$query = Invoice::query()
-			->with('supplier', 'country')
+			->with('country', 'items.product', 'items.deliveryFee')
 			->when($countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-			->orderByDesc('date');
+			->when($from, fn($q) => $q->where(function($q) use ($from) {
+				$q->whereDate('date_from', '>=', $from)
+				  ->orWhereDate('date_to', '>=', $from)
+				  ->orWhereNull('date_from');
+			}))
+			->when($to, fn($q) => $q->where(function($q) use ($to) {
+				$q->whereDate('date_from', '<=', $to)
+				  ->orWhereDate('date_to', '<=', $to)
+				  ->orWhereNull('date_to');
+			}))
+			->orderByDesc('created_at');
 
 		$invoices = $query->paginate(15)->withQueryString();
-		$totalAmount = (clone $query)->sum('total_amount');
 		$countries = Country::orderBy('name')->get();
 
-		return view('invoices.index', compact('invoices', 'totalAmount', 'countries', 'countryId', 'from', 'to'));
+		return view('invoices.index', compact('invoices', 'countries', 'countryId', 'from', 'to'));
 	}
 
 	/**
@@ -38,9 +49,10 @@ class InvoiceController extends Controller
 	 */
 	public function create()
 	{
-		$suppliers = Supplier::orderBy('name')->get();
 		$countries = Country::orderBy('name')->get();
-		return view('invoices.create', compact('suppliers', 'countries'));
+		$products = Product::orderBy('name')->get();
+		$deliveryFees = DeliveryFee::where('active', true)->orderBy('name')->get();
+		return view('invoices.create', compact('countries', 'products', 'deliveryFees'));
 	}
 
 	/**
@@ -49,18 +61,58 @@ class InvoiceController extends Controller
 	public function store(Request $request)
 	{
 		$data = $request->validate([
-			'supplier_id' => 'nullable|exists:suppliers,id',
-			'invoice_number' => 'required|string|max:255',
-			'total_amount' => 'required|numeric|min:0',
-			'currency' => 'required|string|max:10',
-			'date' => 'required|date',
+			'date_from' => 'nullable|date',
+			'date_to' => 'nullable|date',
 			'country_id' => 'required|exists:countries,id',
-			'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+			'products' => 'required|array|min:1',
+			'products.*.id' => 'required|exists:products,id',
+			'products.*.revenue' => 'nullable|numeric|min:0',
+			'products.*.total_orders' => 'nullable|integer|min:0',
+			'products.*.quantity_sold' => 'nullable|integer|min:0',
+			'products.*.delivery_fee_id' => 'nullable|exists:delivery_fees,id',
 		]);
-		if ($request->hasFile('attachment')) {
-			$data['attachment_path'] = $request->file('attachment')->store('invoices', 'public');
-		}
-		Invoice::create($data);
+
+		// Set default values for removed fields
+		$data['supplier_id'] = null;
+		$data['invoice_number'] = 'INV-' . now()->format('YmdHis');
+		$data['total_amount'] = 0;
+		$data['currency'] = 'USD';
+		$data['date'] = now()->toDateString();
+
+		DB::transaction(function () use ($data, $request) {
+			$invoice = Invoice::create($data);
+
+			foreach ($request->input('products', []) as $productData) {
+				$product = Product::find($productData['id']);
+				$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
+				
+				$revenue = $productData['revenue'] ?? 0;
+				$productCost = $product->cost ?? 0;
+				$totalOrders = $productData['total_orders'] ?? 0;
+				$quantitySold = $productData['quantity_sold'] ?? 0;
+				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
+				
+				// Calculate net profit: (Total Orders × delivery fees) - (Quantity Sold × Cost)
+				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
+				$totalProductCost = $quantitySold * $productCost;
+				$netProfit = $totalDeliveryFee - $totalProductCost;
+
+				InvoiceItem::create([
+					'invoice_id' => $invoice->id,
+					'product_id' => $productData['id'],
+					'quantity' => $productData['quantity_sold'] ?? 0,
+					'unit_cost' => $product->cost ?? 0,
+					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
+					'revenue' => $revenue,
+					'total_orders' => $productData['quantity_sold'] ?? 0, // <-- FIX: Use quantity_sold for total_orders
+					'quantity_sold' => $productData['quantity_sold'] ?? 0,
+					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
+					'ads_cost' => 0,
+					'net_profit' => $netProfit,
+				]);
+			}
+		});
+
 		return redirect()->route('invoices.index')->with('status', 'Invoice created.');
 	}
 
@@ -77,9 +129,11 @@ class InvoiceController extends Controller
 	 */
 	public function edit(Invoice $invoice)
 	{
-		$suppliers = Supplier::orderBy('name')->get();
+		$invoice->load('items.product', 'items.deliveryFee');
 		$countries = Country::orderBy('name')->get();
-		return view('invoices.edit', compact('invoice', 'suppliers', 'countries'));
+		$products = Product::orderBy('name')->get();
+		$deliveryFees = DeliveryFee::where('active', true)->orderBy('name')->get();
+		return view('invoices.edit', compact('invoice', 'countries', 'products', 'deliveryFees'));
 	}
 
 	/**
@@ -88,21 +142,62 @@ class InvoiceController extends Controller
 	public function update(Request $request, Invoice $invoice)
 	{
 		$data = $request->validate([
-			'supplier_id' => 'nullable|exists:suppliers,id',
-			'invoice_number' => 'required|string|max:255',
-			'total_amount' => 'required|numeric|min:0',
-			'currency' => 'required|string|max:10',
-			'date' => 'required|date',
+			'date_from' => 'nullable|date',
+			'date_to' => 'nullable|date',
 			'country_id' => 'required|exists:countries,id',
-			'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+			'products' => 'required|array|min:1',
+			'products.*.id' => 'required|exists:products,id',
+			'products.*.revenue' => 'nullable|numeric|min:0',
+			'products.*.total_orders' => 'nullable|integer|min:0',
+			'products.*.quantity_sold' => 'nullable|integer|min:0',
+			'products.*.delivery_fee_id' => 'nullable|exists:delivery_fees,id',
 		]);
-		if ($request->hasFile('attachment')) {
-			if ($invoice->attachment_path) {
-				Storage::disk('public')->delete($invoice->attachment_path);
+
+		// Keep existing values for removed fields (don't update them)
+		$data['supplier_id'] = $invoice->supplier_id;
+		$data['invoice_number'] = $invoice->invoice_number;
+		$data['total_amount'] = $invoice->total_amount;
+		$data['currency'] = $invoice->currency;
+		$data['date'] = $invoice->date;
+
+		DB::transaction(function () use ($invoice, $data, $request) {
+			$invoice->update($data);
+			
+			// Delete existing items
+			$invoice->items()->delete();
+
+			// Create new items
+			foreach ($request->input('products', []) as $productData) {
+				$product = Product::find($productData['id']);
+				$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
+				
+				$revenue = $productData['revenue'] ?? 0;
+				$productCost = $product->cost ?? 0;
+				$totalOrders = $productData['total_orders'] ?? 0;
+				$quantitySold = $productData['quantity_sold'] ?? 0;
+				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
+				
+				// Calculate net profit: (Total Orders × delivery fees) - (Quantity Sold × Cost)
+				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
+				$totalProductCost = $quantitySold * $productCost;
+				$netProfit = $totalDeliveryFee - $totalProductCost;
+
+				InvoiceItem::create([
+					'invoice_id' => $invoice->id,
+					'product_id' => $productData['id'],
+					'quantity' => $productData['quantity_sold'] ?? 0,
+					'unit_cost' => $product->cost ?? 0,
+					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
+					'revenue' => $revenue,
+					'total_orders' => $productData['quantity_sold'] ?? 0, // <-- FIX: Use quantity_sold for total_orders
+					'quantity_sold' => $productData['quantity_sold'] ?? 0,
+					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
+					'ads_cost' => 0,
+					'net_profit' => $netProfit,
+				]);
 			}
-			$data['attachment_path'] = $request->file('attachment')->store('invoices', 'public');
-		}
-		$invoice->update($data);
+		});
+
 		return redirect()->route('invoices.index')->with('status', 'Invoice updated.');
 	}
 

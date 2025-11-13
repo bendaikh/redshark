@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\GlobalDashboardController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\ProductController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SourcingController;
 use App\Http\Controllers\ShippingMethodController;
+use App\Http\Controllers\SettingsController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -32,6 +34,15 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Serve storage files (workaround for Windows symlink issues)
+Route::get('/storage/{path}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (file_exists($filePath)) {
+        return response()->file($filePath);
+    }
+    abort(404);
+})->where('path', '.*');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -46,14 +57,17 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::get('/', [GlobalDashboardController::class, 'index'])->name('admin.dashboard');
 
 		// Settings
-		Route::get('/settings', function () {
-			$countries = \App\Models\Country::orderBy('name')->paginate(10);
-			return view('admin.settings', compact('countries'));
-		})->name('admin.settings');
+		Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
+		
+		// Delivery Fees
+		Route::post('/settings/delivery-fees', [SettingsController::class, 'storeDeliveryFee'])->name('admin.settings.delivery-fees.store');
+		Route::put('/settings/delivery-fees/{deliveryFee}', [SettingsController::class, 'updateDeliveryFee'])->name('admin.settings.delivery-fees.update');
+		Route::delete('/settings/delivery-fees/{deliveryFee}', [SettingsController::class, 'destroyDeliveryFee'])->name('admin.settings.delivery-fees.destroy');
 
 		// Core resources (keep route names the same as views expect)
 		Route::resource('countries', CountryController::class);
 		Route::resource('products', ProductController::class);
+		Route::get('products/{product}/statistics', [ProductController::class, 'statistics'])->name('products.statistics');
 		Route::resource('categories', CategoryController::class);
 		Route::resource('suppliers', SupplierController::class);
 		Route::resource('invoices', InvoiceController::class);

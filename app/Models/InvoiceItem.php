@@ -12,12 +12,26 @@ class InvoiceItem extends Model
 		'quantity',
 		'unit_cost',
 		'total_cost',
+		'revenue',
+		'total_orders',
+		'quantity_sold',
+		'delivery_fee_id',
+		'ads_cost',
+		'net_profit',
 	];
 
 	protected $casts = [
 		'unit_cost' => 'decimal:2',
 		'total_cost' => 'decimal:2',
+		'revenue' => 'decimal:2',
+		'ads_cost' => 'decimal:2',
+		'net_profit' => 'decimal:2',
 	];
+
+	public function deliveryFee()
+	{
+		return $this->belongsTo(\App\Models\DeliveryFee::class);
+	}
 
 	public function invoice()
 	{

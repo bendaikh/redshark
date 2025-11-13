@@ -12,12 +12,16 @@ class Invoice extends Model
 		'total_amount',
 		'currency',
 		'date',
+		'date_from',
+		'date_to',
 		'country_id',
 		'attachment_path',
 	];
 
 	protected $casts = [
 		'date' => 'date',
+		'date_from' => 'date',
+		'date_to' => 'date',
 		'total_amount' => 'decimal:2',
 	];
 
