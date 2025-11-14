@@ -40,7 +40,7 @@
 								<th class="py-2 px-2">{{ __('Category') }}</th>
 								<th class="py-2 px-2">{{ __('Initial Qty') }}</th>
 								<th class="py-2 px-2">{{ __('Remaining Qty') }}</th>
-								<th class="py-2 px-2">{{ __('Cost') }}</th>
+								<th class="py-2 px-2">{{ __('Cost Total') }}</th>
 								<th class="py-2 px-2">{{ __('Country') }}</th>
 								<th class="py-2 px-2">{{ __('Delivery Rate') }}</th>
 								<th class="py-2 px-2">{{ __('Ads Cost Total') }}</th>

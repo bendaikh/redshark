@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Supplier;
 use App\Models\Country;
 use App\Models\Category;
 use Illuminate\Http\Request;
@@ -41,10 +40,9 @@ class ProductController extends Controller
 	 */
 	public function create()
 	{
-		$suppliers = Supplier::orderBy('name')->get();
 		$countries = Country::orderBy('name')->get();
 		$categories = Category::orderBy('name')->get();
-		return view('products.create', compact('suppliers', 'countries', 'categories'));
+		return view('products.create', compact('countries', 'categories'));
 	}
 
 	/**
@@ -56,9 +54,6 @@ class ProductController extends Controller
 			'name' => 'required|string|max:255',
 			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
-			'quantity' => 'required|integer|min:0',
-			'cost' => 'required|numeric|min:0',
-			'supplier_id' => 'nullable|exists:suppliers,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);
@@ -84,10 +79,9 @@ class ProductController extends Controller
 	 */
 	public function edit(Product $product)
 	{
-		$suppliers = Supplier::orderBy('name')->get();
 		$countries = Country::orderBy('name')->get();
 		$categories = Category::orderBy('name')->get();
-		return view('products.edit', compact('product', 'suppliers', 'countries', 'categories'));
+		return view('products.edit', compact('product', 'countries', 'categories'));
 	}
 
 	/**
@@ -99,9 +93,6 @@ class ProductController extends Controller
 			'name' => 'required|string|max:255',
 			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
-			'quantity' => 'required|integer|min:0',
-			'cost' => 'required|numeric|min:0',
-			'supplier_id' => 'nullable|exists:suppliers,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);

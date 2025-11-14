@@ -74,6 +74,7 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('ads-campaigns', AdsCampaignController::class);
 		Route::resource('ads-platforms', AdsPlatformController::class);
 		Route::resource('sourcings', SourcingController::class);
+		Route::post('sourcings/{sourcing}/validate', [SourcingController::class, 'validateSourcing'])->name('sourcings.validate');
 		Route::resource('shipping-methods', ShippingMethodController::class);
 	});
 

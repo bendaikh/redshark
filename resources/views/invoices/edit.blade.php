@@ -73,6 +73,12 @@
 		const addedProductIds = new Set();
 
 		function addProductCard(productId, productName, productCost, revenue = 0, totalOrders = 0, quantitySold = 0, deliveryFeeId = null, adsCost = 0, netProfit = 0) {
+			// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
+			const selectedDeliveryFeeForCalc = deliveryFeeId ? deliveryFees.find(f => f.id == deliveryFeeId) : null;
+			const deliveryFeePerUnit = selectedDeliveryFeeForCalc ? selectedDeliveryFeeForCalc.fee_per_unit : 0;
+			const totalDeliveryFee = totalOrders * deliveryFeePerUnit;
+			const totalProductCost = quantitySold * productCost;
+			const totalAmount = revenue - totalDeliveryFee - totalProductCost;
 			const container = document.getElementById('productsContainer');
 			const noProductsMessage = document.getElementById('noProductsMessage');
 			
@@ -101,8 +107,8 @@
 					<div>
 						<label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('Revenue') }}</label>
 						<input type="number" step="0.01" min="0" name="products[${productRowIndex}][revenue]" value="${revenue}" 
-							class="w-full px-3 py-2 text-sm rounded border-gray-300 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600" 
-							placeholder="0.00">
+							class="w-full px-3 py-2 text-sm rounded border-gray-300 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 calculate-profit" 
+							onchange="calculateNetProfit(${productRowIndex})" placeholder="0.00">
 					</div>
 					<div>
 						<label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('Total Orders') }}</label>
@@ -133,8 +139,8 @@
 						<input type="hidden" name="products[${productRowIndex}][product_cost]" value="${productCost}">
 					</div>
 					<div>
-						<label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('Net Profit') }} <span class="text-gray-400">({{ __('Auto') }})</span></label>
-						<input type="number" step="0.01" id="netProfit_${productRowIndex}" value="${netProfit.toFixed(2)}" 
+						<label class="block text-xs text-gray-600 dark:text-gray-400 mb-1">{{ __('Total Amount') }} <span class="text-gray-400">({{ __('Auto') }})</span></label>
+						<input type="number" step="0.01" id="totalAmount_${productRowIndex}" value="${totalAmount.toFixed(2)}" 
 							class="w-full px-3 py-2 text-sm rounded border-gray-300 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 bg-gray-100 dark:bg-gray-900 font-semibold" 
 							readonly>
 					</div>
@@ -164,6 +170,7 @@
 			const card = document.getElementById(`productCard_${index}`);
 			if (!card) return;
 
+			const revenue = parseFloat(card.querySelector('input[name*="[revenue]"]').value) || 0;
 			const totalOrders = parseFloat(card.querySelector('input[name*="[total_orders]"]').value) || 0;
 			const quantitySold = parseFloat(card.querySelector('input[name*="[quantity_sold]"]').value) || 0;
 			const productCostInput = card.querySelector('input[name*="[product_cost]"]');
@@ -173,14 +180,14 @@
 			const selectedOption = deliveryFeeSelect ? deliveryFeeSelect.options[deliveryFeeSelect.selectedIndex] : null;
 			const deliveryFeePerUnit = selectedOption && selectedOption.dataset.fee ? parseFloat(selectedOption.dataset.fee) : 0;
 
-			// Calculate: (Total Orders × delivery fees) - (Quantity Sold × Cost)
+			// Calculate: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
 			const totalDeliveryFee = totalOrders * deliveryFeePerUnit;
 			const totalProductCost = quantitySold * productCost;
-			const netProfit = totalDeliveryFee - totalProductCost;
+			const totalAmount = revenue - totalDeliveryFee - totalProductCost;
 			
-			const netProfitInput = document.getElementById(`netProfit_${index}`);
-			if (netProfitInput) {
-				netProfitInput.value = netProfit.toFixed(2);
+			const totalAmountInput = document.getElementById(`totalAmount_${index}`);
+			if (totalAmountInput) {
+				totalAmountInput.value = totalAmount.toFixed(2);
 			}
 		}
 

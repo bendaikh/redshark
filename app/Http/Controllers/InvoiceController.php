@@ -92,10 +92,10 @@ class InvoiceController extends Controller
 				$quantitySold = $productData['quantity_sold'] ?? 0;
 				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
 				
-				// Calculate net profit: (Total Orders × delivery fees) - (Quantity Sold × Cost)
+				// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
 				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
 				$totalProductCost = $quantitySold * $productCost;
-				$netProfit = $totalDeliveryFee - $totalProductCost;
+				$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
 
 				InvoiceItem::create([
 					'invoice_id' => $invoice->id,
@@ -104,11 +104,11 @@ class InvoiceController extends Controller
 					'unit_cost' => $product->cost ?? 0,
 					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
 					'revenue' => $revenue,
-					'total_orders' => $productData['quantity_sold'] ?? 0, // <-- FIX: Use quantity_sold for total_orders
+					'total_orders' => $productData['total_orders'] ?? 0,
 					'quantity_sold' => $productData['quantity_sold'] ?? 0,
 					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
 					'ads_cost' => 0,
-					'net_profit' => $netProfit,
+					'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
 				]);
 			}
 		});
@@ -177,10 +177,10 @@ class InvoiceController extends Controller
 				$quantitySold = $productData['quantity_sold'] ?? 0;
 				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
 				
-				// Calculate net profit: (Total Orders × delivery fees) - (Quantity Sold × Cost)
+				// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
 				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
 				$totalProductCost = $quantitySold * $productCost;
-				$netProfit = $totalDeliveryFee - $totalProductCost;
+				$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
 
 				InvoiceItem::create([
 					'invoice_id' => $invoice->id,
@@ -189,11 +189,11 @@ class InvoiceController extends Controller
 					'unit_cost' => $product->cost ?? 0,
 					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
 					'revenue' => $revenue,
-					'total_orders' => $productData['quantity_sold'] ?? 0, // <-- FIX: Use quantity_sold for total_orders
+					'total_orders' => $productData['total_orders'] ?? 0,
 					'quantity_sold' => $productData['quantity_sold'] ?? 0,
 					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
 					'ads_cost' => 0,
-					'net_profit' => $netProfit,
+					'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
 				]);
 			}
 		});
