@@ -90,24 +90,68 @@ return new class extends Migration
                 ]);
         }
 
-        // Step 7: Check if new columns already exist to avoid duplicates
-        $hasNewColumns = Schema::hasColumn('sourcings', 'product_name');
+        // Step 7: Add new columns individually if they don't exist
+        // Define columns in order with their dependencies
+        $columnsToAdd = [
+            'product_name' => ['type' => 'string', 'nullable' => false, 'after' => 'id'],
+            'product_image' => ['type' => 'string', 'nullable' => true, 'after' => 'product_name'],
+            'category_id' => ['type' => 'unsignedBigInteger', 'nullable' => true, 'after' => 'product_image'],
+            'quantity' => ['type' => 'unsignedInteger', 'nullable' => false, 'default' => 0, 'after' => 'category_id'],
+            'country_id' => ['type' => 'unsignedBigInteger', 'nullable' => true, 'after' => 'quantity'],
+            'price' => ['type' => 'decimal', 'nullable' => false, 'default' => 0, 'precision' => [12, 2], 'after' => 'country_id'],
+            'cost' => ['type' => 'decimal', 'nullable' => false, 'default' => 0, 'precision' => [12, 2], 'after' => 'price'],
+            'shipping_type' => ['type' => 'enum', 'nullable' => true, 'values' => ['in_transit', 'arrived'], 'after' => 'cost'],
+            'additional_fees' => ['type' => 'decimal', 'nullable' => false, 'default' => 0, 'precision' => [12, 2], 'after' => 'shipping_type'],
+            'testing_fees' => ['type' => 'decimal', 'nullable' => false, 'default' => 0, 'precision' => [12, 2], 'after' => 'additional_fees'],
+            'supplier_id' => ['type' => 'unsignedBigInteger', 'nullable' => true, 'after' => 'testing_fees'],
+        ];
         
-        if (!$hasNewColumns) {
-            // Add new fields (without foreign keys first, country_id nullable temporarily)
-            Schema::table('sourcings', function (Blueprint $table) {
-                $table->string('product_name')->after('id');
-                $table->string('product_image')->nullable()->after('product_name');
-                $table->unsignedBigInteger('category_id')->nullable()->after('product_image');
-                $table->unsignedInteger('quantity')->default(0)->after('category_id');
-                $table->unsignedBigInteger('country_id')->nullable()->after('quantity');
-                $table->decimal('price', 12, 2)->default(0)->after('country_id');
-                $table->decimal('cost', 12, 2)->default(0)->after('price');
-                $table->enum('shipping_type', ['in_transit', 'arrived'])->nullable()->after('cost');
-                $table->decimal('additional_fees', 12, 2)->default(0)->after('shipping_type');
-                $table->decimal('testing_fees', 12, 2)->default(0)->after('additional_fees');
-                $table->unsignedBigInteger('supplier_id')->nullable()->after('testing_fees');
-            });
+        // Add columns one by one in order, checking if they exist and if the 'after' column exists
+        foreach ($columnsToAdd as $columnName => $columnDef) {
+            if (!Schema::hasColumn('sourcings', $columnName)) {
+                try {
+                    // Check if the 'after' column exists before the closure
+                    $useAfter = isset($columnDef['after']) && Schema::hasColumn('sourcings', $columnDef['after']);
+                    $afterColumn = $useAfter ? $columnDef['after'] : null;
+                    
+                    Schema::table('sourcings', function (Blueprint $table) use ($columnName, $columnDef, $afterColumn) {
+                        switch ($columnDef['type']) {
+                            case 'string':
+                                $column = $table->string($columnName);
+                                break;
+                            case 'unsignedBigInteger':
+                                $column = $table->unsignedBigInteger($columnName);
+                                break;
+                            case 'unsignedInteger':
+                                $column = $table->unsignedInteger($columnName);
+                                break;
+                            case 'decimal':
+                                $column = $table->decimal($columnName, $columnDef['precision'][0], $columnDef['precision'][1]);
+                                break;
+                            case 'enum':
+                                $column = $table->enum($columnName, $columnDef['values']);
+                                break;
+                            default:
+                                return;
+                        }
+                        
+                        if (isset($columnDef['nullable']) && $columnDef['nullable']) {
+                            $column->nullable();
+                        }
+                        
+                        if (isset($columnDef['default'])) {
+                            $column->default($columnDef['default']);
+                        }
+                        
+                        if ($afterColumn) {
+                            $column->after($afterColumn);
+                        }
+                    });
+                } catch (\Exception $e) {
+                    // Column might already exist or there's an issue, log and continue
+                    \Log::warning("Could not add column {$columnName}: " . $e->getMessage());
+                }
+            }
         }
 
         // Step 8: Copy data from temp columns to new columns (only if temp columns exist)
@@ -182,22 +226,75 @@ return new class extends Migration
             }
         });
 
-        // Step 11: Add foreign key constraints (after ensuring all data is valid) - only if they don't exist
+        // Step 11: Add foreign key constraints (after ensuring all data is valid) - only if columns and foreign keys don't exist
         $connection = Schema::getConnection();
         $db = $connection->getDatabaseName();
         
-        $existingForeignKeys = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'sourcings' AND REFERENCED_TABLE_NAME IS NOT NULL", [$db]);
-        $existingKeys = array_column($existingForeignKeys, 'CONSTRAINT_NAME');
+        // Get existing foreign keys
+        $existingForeignKeys = DB::select("
+            SELECT CONSTRAINT_NAME, COLUMN_NAME 
+            FROM information_schema.KEY_COLUMN_USAGE 
+            WHERE TABLE_SCHEMA = ? 
+            AND TABLE_NAME = 'sourcings' 
+            AND REFERENCED_TABLE_NAME IS NOT NULL
+        ", [$db]);
         
-        Schema::table('sourcings', function (Blueprint $table) use ($existingKeys) {
-            if (!in_array('sourcings_category_id_foreign', $existingKeys)) {
-                $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+        $existingKeys = [];
+        foreach ($existingForeignKeys as $fk) {
+            $existingKeys[$fk->COLUMN_NAME] = $fk->CONSTRAINT_NAME;
+        }
+        
+        // Verify columns exist and add foreign keys
+        Schema::table('sourcings', function (Blueprint $table) use ($existingKeys, $db) {
+            // Check if category_id column exists and foreign key doesn't exist
+            if (Schema::hasColumn('sourcings', 'category_id') && !isset($existingKeys['category_id'])) {
+                try {
+                    // Verify categories table exists
+                    $categoriesExists = DB::select("
+                        SELECT COUNT(*) as count 
+                        FROM information_schema.tables 
+                        WHERE table_schema = ? AND table_name = 'categories'
+                    ", [$db]);
+                    if (!empty($categoriesExists) && $categoriesExists[0]->count > 0) {
+                        $table->foreign('category_id')->references('id')->on('categories')->onDelete('set null');
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning("Could not add foreign key for category_id: " . $e->getMessage());
+                }
             }
-            if (!in_array('sourcings_country_id_foreign', $existingKeys)) {
-                $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+            
+            // Check if country_id column exists and foreign key doesn't exist
+            if (Schema::hasColumn('sourcings', 'country_id') && !isset($existingKeys['country_id'])) {
+                try {
+                    // Verify countries table exists
+                    $countriesExists = DB::select("
+                        SELECT COUNT(*) as count 
+                        FROM information_schema.tables 
+                        WHERE table_schema = ? AND table_name = 'countries'
+                    ", [$db]);
+                    if (!empty($countriesExists) && $countriesExists[0]->count > 0) {
+                        $table->foreign('country_id')->references('id')->on('countries')->onDelete('cascade');
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning("Could not add foreign key for country_id: " . $e->getMessage());
+                }
             }
-            if (!in_array('sourcings_supplier_id_foreign', $existingKeys)) {
-                $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('set null');
+            
+            // Check if supplier_id column exists and foreign key doesn't exist
+            if (Schema::hasColumn('sourcings', 'supplier_id') && !isset($existingKeys['supplier_id'])) {
+                try {
+                    // Verify suppliers table exists
+                    $suppliersExists = DB::select("
+                        SELECT COUNT(*) as count 
+                        FROM information_schema.tables 
+                        WHERE table_schema = ? AND table_name = 'suppliers'
+                    ", [$db]);
+                    if (!empty($suppliersExists) && $suppliersExists[0]->count > 0) {
+                        $table->foreign('supplier_id')->references('id')->on('suppliers')->onDelete('set null');
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning("Could not add foreign key for supplier_id: " . $e->getMessage());
+                }
             }
         });
     }
