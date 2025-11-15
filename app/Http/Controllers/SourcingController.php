@@ -39,7 +39,8 @@ class SourcingController extends Controller
 		$countries = Country::orderBy('name')->get();
 		$categories = Category::orderBy('name')->get();
 		$shippingMethods = ShippingMethod::where('active', true)->orderBy('name')->get();
-		return view('sourcings.create', compact('suppliers', 'countries', 'categories', 'shippingMethods'));
+		$products = Product::orderBy('name')->get();
+		return view('sourcings.create', compact('suppliers', 'countries', 'categories', 'shippingMethods', 'products'));
 	}
 
 	/**
@@ -47,8 +48,12 @@ class SourcingController extends Controller
 	 */
 	public function store(Request $request)
 	{
-		$data = $request->validate([
-			'product_name' => 'required|string|max:255',
+		$isRestock = $request->has('is_restock') && $request->input('is_restock') == '1';
+		
+		$rules = [
+			'is_restock' => 'nullable|boolean',
+			'product_id' => $isRestock ? 'required|exists:products,id' : 'nullable|exists:products,id',
+			'product_name' => $isRestock ? 'nullable|string|max:255' : 'required|string|max:255',
 			'product_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
@@ -62,7 +67,23 @@ class SourcingController extends Controller
 			'shipping_method' => 'nullable|string|max:255',
 			'sourcing_date' => 'nullable|date',
 			'notes' => 'nullable|string',
-		]);
+		];
+
+		$data = $request->validate($rules);
+		
+		// If restocking, get product data
+		if ($isRestock && isset($data['product_id'])) {
+			$product = Product::find($data['product_id']);
+			if ($product) {
+				$data['product_name'] = $product->name;
+				$data['category_id'] = $product->category_id;
+				$data['country_id'] = $product->country_id;
+				// Don't overwrite image if not provided
+				if (!$request->hasFile('product_image')) {
+					$data['product_image'] = $product->image;
+				}
+			}
+		}
 
 		// Handle image upload
 		if ($request->hasFile('product_image')) {
@@ -72,11 +93,18 @@ class SourcingController extends Controller
 		// Calculate Price Total automatically: Unit Price * Quantity
 		$data['cost'] = ($data['price'] ?? 0) * ($data['quantity'] ?? 0);
 
+		// Set is_restock flag
+		$data['is_restock'] = $isRestock;
+
 		// Create sourcing without validating (validated = false by default)
 		$data['validated'] = false;
 		$sourcing = Sourcing::create($data);
 		
-		return redirect()->route('sourcings.index')->with('status', 'Sourcing created. Please validate it to create the product.');
+		$message = $isRestock 
+			? 'Sourcing created. Please validate it to restock the product.'
+			: 'Sourcing created. Please validate it to create the product.';
+		
+		return redirect()->route('sourcings.index')->with('status', $message);
 	}
 
 	/**
@@ -96,7 +124,8 @@ class SourcingController extends Controller
 		$countries = Country::orderBy('name')->get();
 		$categories = Category::orderBy('name')->get();
 		$shippingMethods = ShippingMethod::where('active', true)->orderBy('name')->get();
-		return view('sourcings.edit', compact('sourcing', 'suppliers', 'countries', 'categories', 'shippingMethods'));
+		$products = Product::orderBy('name')->get();
+		return view('sourcings.edit', compact('sourcing', 'suppliers', 'countries', 'categories', 'shippingMethods', 'products'));
 	}
 
 	/**
@@ -104,8 +133,12 @@ class SourcingController extends Controller
 	 */
 	public function update(Request $request, Sourcing $sourcing)
 	{
-		$data = $request->validate([
-			'product_name' => 'required|string|max:255',
+		$isRestock = $request->has('is_restock') && $request->input('is_restock') == '1';
+		
+		$rules = [
+			'is_restock' => 'nullable|boolean',
+			'product_id' => $isRestock ? 'required|exists:products,id' : 'nullable|exists:products,id',
+			'product_name' => $isRestock ? 'nullable|string|max:255' : 'required|string|max:255',
 			'product_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'quantity' => 'required|integer|min:0',
@@ -119,7 +152,23 @@ class SourcingController extends Controller
 			'shipping_method' => 'nullable|string|max:255',
 			'sourcing_date' => 'nullable|date',
 			'notes' => 'nullable|string',
-		]);
+		];
+
+		$data = $request->validate($rules);
+		
+		// If restocking, get product data
+		if ($isRestock && isset($data['product_id'])) {
+			$product = Product::find($data['product_id']);
+			if ($product) {
+				$data['product_name'] = $product->name;
+				$data['category_id'] = $product->category_id;
+				$data['country_id'] = $product->country_id;
+				// Don't overwrite image if not provided
+				if (!$request->hasFile('product_image')) {
+					$data['product_image'] = $sourcing->product_image ?: $product->image;
+				}
+			}
+		}
 
 		// Handle image upload
 		if ($request->hasFile('product_image')) {
@@ -132,12 +181,15 @@ class SourcingController extends Controller
 		// Calculate Price Total automatically: Unit Price * Quantity
 		$data['cost'] = ($data['price'] ?? 0) * ($data['quantity'] ?? 0);
 
+		// Set is_restock flag
+		$data['is_restock'] = $isRestock;
+
 		$sourcing->update($data);
 		return redirect()->route('sourcings.index')->with('status', 'Sourcing updated.');
 	}
 
 	/**
-	 * Validate a sourcing and create the product.
+	 * Validate a sourcing and create or restock the product.
 	 */
 	public function validateSourcing(Sourcing $sourcing)
 	{
@@ -146,7 +198,6 @@ class SourcingController extends Controller
 			return redirect()->route('sourcings.index')->with('status', 'This sourcing has already been validated.');
 		}
 
-		// Create product from sourcing data
 		// Calculate cost_total: (Price Total + Additional Fees + Testing Fees + Shipping Cost) / Quantity
 		$priceTotal = $sourcing->cost ?? 0; // Price Total
 		$additionalFees = $sourcing->additional_fees ?? 0;
@@ -155,22 +206,40 @@ class SourcingController extends Controller
 		$quantity = $sourcing->quantity ?? 1;
 		$costTotal = $quantity > 0 ? ($priceTotal + $additionalFees + $testingFees + $shippingCost) / $quantity : 0;
 
-		$productData = [
-			'name' => $sourcing->product_name,
-			'image' => $sourcing->product_image,
-			'category_id' => $sourcing->category_id,
-			'country_id' => $sourcing->country_id,
-			'quantity' => $sourcing->quantity, // Include quantity from sourcing
-			'cost' => $costTotal, // Use Cost Total per unit for product cost
-			'low_stock_threshold' => 5, // Default value
-		];
+		if ($sourcing->is_restock && $sourcing->product_id) {
+			// Restock existing product
+			$product = Product::find($sourcing->product_id);
+			if (!$product) {
+				return redirect()->route('sourcings.index')->with('error', 'Product not found for restocking.');
+			}
 
-		Product::create($productData);
+			// Update product quantity (add the new quantity)
+			$product->quantity += $sourcing->quantity;
+			$product->save();
 
-		// Mark sourcing as validated
-		$sourcing->update(['validated' => true]);
+			// Mark sourcing as validated
+			$sourcing->update(['validated' => true]);
 
-		return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product created successfully.');
+			return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product restocked successfully.');
+		} else {
+			// Create new product from sourcing data
+			$productData = [
+				'name' => $sourcing->product_name,
+				'image' => $sourcing->product_image,
+				'category_id' => $sourcing->category_id,
+				'country_id' => $sourcing->country_id,
+				'quantity' => $sourcing->quantity, // Include quantity from sourcing
+				'cost' => $costTotal, // Use Cost Total per unit for product cost
+				'low_stock_threshold' => 5, // Default value
+			];
+
+			Product::create($productData);
+
+			// Mark sourcing as validated
+			$sourcing->update(['validated' => true]);
+
+			return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product created successfully.');
+		}
 	}
 
 	/**

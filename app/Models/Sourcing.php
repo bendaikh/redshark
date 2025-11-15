@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Sourcing extends Model
 {
 	protected $fillable = [
+		'product_id',
+		'is_restock',
 		'product_name',
 		'product_image',
 		'category_id',
@@ -33,6 +35,7 @@ class Sourcing extends Model
 		'testing_fees' => 'decimal:2',
 		'sourcing_date' => 'date',
 		'validated' => 'boolean',
+		'is_restock' => 'boolean',
 	];
 
 	public function category()
@@ -48,6 +51,11 @@ class Sourcing extends Model
 	public function supplier()
 	{
 		return $this->belongsTo(Supplier::class);
+	}
+
+	public function product()
+	{
+		return $this->belongsTo(Product::class);
 	}
 
 	/**

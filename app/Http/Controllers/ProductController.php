@@ -155,6 +155,8 @@ class ProductController extends Controller
 				'cost_per_delivered' => $product->cost_per_delivered,
 				'quantity' => $product->quantity,
 				'remaining_qty' => $product->remaining_qty,
+				'total_amount' => $product->total_amount,
+				'net_profit' => $product->net_profit,
 			],
 			'invoiceItems' => $invoiceItems,
 			'adsData' => $adsData,

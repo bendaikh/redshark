@@ -46,6 +46,7 @@
 								<th class="py-2 px-2">{{ __('Ads Cost Total') }}</th>
 								<th class="py-2 px-2">{{ __('Cost Per Lead') }}</th>
 								<th class="py-2 px-2">{{ __('Cost Per Delivered') }}</th>
+								<th class="py-2 px-2">{{ __('Net Profit') }}</th>
 								<th class="py-2 px-2 text-center">{{ __('Actions') }}</th>
 							</tr>
 						</thead>
@@ -78,6 +79,7 @@
 									<td class="py-2 px-2">{{ number_format($p->total_ads_cost, 2) }}</td>
 									<td class="py-2 px-2">{{ number_format($p->cost_per_lead, 2) }}</td>
 									<td class="py-2 px-2">{{ number_format($p->cost_per_delivered, 2) }}</td>
+									<td class="py-2 px-2">{{ number_format($p->net_profit, 2) }}</td>
 									<td class="py-2 px-2">
 										<div class="flex items-center justify-center gap-2">
 											<button @click="window.loadStatistics({{ $p->id }})" class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors" title="{{ __('Statistics') }}">
@@ -332,7 +334,7 @@
 					<template x-if="!loading && statsData">
 						<div class="space-y-6">
 							<!-- Summary Cards -->
-							<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+							<div class="grid grid-cols-2 md:grid-cols-5 gap-4">
 								<div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
 									<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ __('Total Leads') }}</p>
 									<p class="text-2xl font-bold text-gray-900 dark:text-gray-100" x-text="statsData && statsData.product ? statsData.product.total_leads.toLocaleString() : '0'"></p>
@@ -348,6 +350,10 @@
 								<div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
 									<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ __('Delivery Rate') }}</p>
 									<p class="text-2xl font-bold text-gray-900 dark:text-gray-100" x-text="statsData && statsData.product ? parseFloat(statsData.product.delivery_rate).toFixed(2) + '%' : '0.00%'"></p>
+								</div>
+								<div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+									<p class="text-sm text-gray-500 dark:text-gray-400 mb-1">{{ __('Net Profit') }}</p>
+									<p class="text-2xl font-bold text-gray-900 dark:text-gray-100" x-text="statsData && statsData.product ? parseFloat(statsData.product.net_profit).toFixed(2) : '0.00'"></p>
 								</div>
 							</div>
 

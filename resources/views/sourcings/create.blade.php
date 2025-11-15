@@ -9,9 +9,29 @@
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
 				<form method="POST" action="{{ route('sourcings.store') }}" enctype="multipart/form-data" class="space-y-4">
 					@csrf
-					<div>
-						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Product Name') }}</label>
-						<input type="text" name="product_name" value="{{ old('product_name') }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
+					<div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+						<label class="flex items-center space-x-2 cursor-pointer">
+							<input type="checkbox" name="is_restock" value="1" id="is_restock" {{ old('is_restock') ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+							<span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Restock Existing Product') }}</span>
+						</label>
+						<p class="mt-2 text-xs text-gray-600 dark:text-gray-400">{{ __('Check this to restock an existing product instead of creating a new one') }}</p>
+					</div>
+					
+					<div id="restock_section" style="display: none;">
+						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Select Product to Restock') }}</label>
+						<select name="product_id" id="product_select" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
+							<option value="">{{ __('Select a product') }}</option>
+							@foreach($products as $product)
+								<option value="{{ $product->id }}" {{ old('product_id') == $product->id ? 'selected' : '' }}>{{ $product->name }}</option>
+							@endforeach
+						</select>
+					</div>
+					
+					<div id="new_product_section">
+						<div>
+							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Product Name') }}</label>
+							<input type="text" name="product_name" id="product_name" value="{{ old('product_name') }}" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
+						</div>
 					</div>
 					<div>
 						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Product Image') }}</label>
@@ -58,6 +78,35 @@
 							const unitPriceInput = document.getElementById('unit_price');
 							const quantityInput = document.querySelector('input[name="quantity"]');
 							const priceTotalInput = document.getElementById('price_total');
+							const isRestockCheckbox = document.getElementById('is_restock');
+							const restockSection = document.getElementById('restock_section');
+							const newProductSection = document.getElementById('new_product_section');
+							const productSelect = document.getElementById('product_select');
+							const productNameInput = document.getElementById('product_name');
+							const products = @json($products->keyBy('id'));
+
+							function toggleRestockSections() {
+								if (isRestockCheckbox.checked) {
+									restockSection.style.display = 'block';
+									newProductSection.style.display = 'none';
+									productNameInput.removeAttribute('required');
+									productSelect.setAttribute('required', 'required');
+								} else {
+									restockSection.style.display = 'none';
+									newProductSection.style.display = 'block';
+									productSelect.removeAttribute('required');
+									productNameInput.setAttribute('required', 'required');
+								}
+							}
+
+							function updateProductInfo() {
+								if (isRestockCheckbox.checked && productSelect.value) {
+									const product = products[productSelect.value];
+									if (product) {
+										productNameInput.value = product.name;
+									}
+								}
+							}
 
 							function calculatePriceTotal() {
 								const unitPrice = parseFloat(unitPriceInput.value) || 0;
@@ -66,9 +115,14 @@
 								priceTotalInput.value = priceTotal.toFixed(2);
 							}
 
+							isRestockCheckbox.addEventListener('change', toggleRestockSections);
+							productSelect.addEventListener('change', updateProductInfo);
 							unitPriceInput.addEventListener('input', calculatePriceTotal);
 							quantityInput.addEventListener('input', calculatePriceTotal);
-							calculatePriceTotal(); // Calculate on page load
+							
+							// Initialize on page load
+							toggleRestockSections();
+							calculatePriceTotal();
 						});
 					</script>
 					<div>

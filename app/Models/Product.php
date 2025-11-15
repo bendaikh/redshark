@@ -77,12 +77,12 @@ class Product extends Model
 
 	public function getDeliveryRateAttribute()
 	{
-		$totalOrders = $this->getTotalOrdersAttribute();
-		if ($totalOrders == 0) {
+		$totalLeads = $this->getTotalLeadsAttribute();
+		if ($totalLeads == 0) {
 			return 0;
 		}
-		$totalLeads = $this->getTotalLeadsAttribute();
-		return ($totalLeads / $totalOrders) * 100;
+		$totalOrders = $this->getTotalOrdersAttribute();
+		return ($totalOrders / $totalLeads) * 100;
 	}
 
 	public function getCostPerLeadAttribute()
@@ -103,6 +103,35 @@ class Product extends Model
 		}
 		$totalAdsCost = $this->getTotalAdsCostAttribute();
 		return $totalAdsCost / $totalOrders;
+	}
+
+	public function getTotalRevenueAttribute()
+	{
+		return $this->invoiceItems()->sum('revenue');
+	}
+
+	public function getTotalAmountAttribute()
+	{
+		// Total Amount (Auto) = sum of (revenue - (total_orders × delivery_fee) - (quantity_sold × unit_cost)) for all invoice items
+		$total = 0;
+		$invoiceItems = $this->invoiceItems()->with('deliveryFee')->get();
+		
+		foreach ($invoiceItems as $item) {
+			$deliveryFeePerUnit = $item->deliveryFee ? $item->deliveryFee->fee_per_unit : 0;
+			$totalDeliveryFee = $item->total_orders * $deliveryFeePerUnit;
+			$totalProductCost = $item->quantity_sold * $item->unit_cost;
+			$totalAmount = $item->revenue - $totalDeliveryFee - $totalProductCost;
+			$total += $totalAmount;
+		}
+		
+		return $total;
+	}
+
+	public function getNetProfitAttribute()
+	{
+		$totalAmount = $this->getTotalAmountAttribute();
+		$totalAdsCost = $this->getTotalAdsCostAttribute();
+		return $totalAmount - $totalAdsCost;
 	}
 }
 
