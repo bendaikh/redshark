@@ -8,6 +8,7 @@ use App\Models\Country;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\AdsCampaign;
+use App\Models\Sourcing;
 
 class GlobalDashboardController extends Controller
 {
@@ -24,12 +25,18 @@ class GlobalDashboardController extends Controller
 			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
 			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
 			->count();
-		// Calculate ads spent from pivot table
+		// Calculate ads spent from pivot table (clone query for reuse)
 		$adsSpentQuery = DB::table('ads_campaign_product')
 			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
-			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('ads_campaigns.date_from', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('ads_campaigns.date_to', '<=', $to));
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId));
+		
+		// Apply date filters if provided
+		if ($from) {
+			$adsSpentQuery->whereDate('ads_campaigns.date_from', '>=', $from);
+		}
+		if ($to) {
+			$adsSpentQuery->whereDate('ads_campaigns.date_to', '<=', $to);
+		}
 		
 		$totalExpenses = ($adsSpentQuery->sum('ads_campaign_product.amount_spent') ?: 0)
 			+ Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
@@ -38,6 +45,178 @@ class GlobalDashboardController extends Controller
 				->sum('total_amount');
 		$totalStockValue = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
 			->sum(\DB::raw('quantity * cost'));
+
+		// Calculate total ads spent (reuse the query)
+		$totalAdsSpent = (clone $adsSpentQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
+
+		// Calculate total profits (sum of all products' net_profit)
+		$products = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->get();
+		$totalProfits = $products->sum(function($product) {
+			return $product->net_profit;
+		});
+
+		// Get profitable products (net_profit > 0)
+		$profitableProducts = $products->filter(function($product) {
+			return $product->net_profit > 0;
+		})->sortByDesc('net_profit')->take(10);
+
+		// Stock management
+		$totalStockQty = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->sum('quantity');
+		$lowStockProducts = Product::with('category')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->whereColumn('quantity', '<=', 'low_stock_threshold')
+			->get();
+
+		// Sourcing management
+		$totalSourcings = Sourcing::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->count();
+		$validatedSourcings = Sourcing::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->where('validated', true)->count();
+		$pendingSourcings = $totalSourcings - $validatedSourcings;
+
+		// Ads management
+		$totalAdsCampaigns = AdsCampaign::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('date_from', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('date_to', '<=', $to))
+			->count();
+
+		// Chart data - Time-based metrics (always generate, use all-time if no filters)
+		$chartData = [];
+		$minDate = Invoice::min('date');
+		$maxDate = Invoice::max('date');
+		$chartFrom = $from ?: ($minDate ?: now()->subMonths(6)->format('Y-m-d'));
+		$chartTo = $to ?: ($maxDate ?: now()->format('Y-m-d'));
+		
+		// Always try to generate chart data, even if empty
+		if ($chartFrom && $chartTo) {
+			// Get invoice items with calculated total amounts (matching Product model logic exactly)
+			$invoiceItems = DB::table('invoice_items')
+				->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+				->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id')
+				->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+				->whereBetween('invoices.date', [$chartFrom, $chartTo])
+				->selectRaw('DATE_FORMAT(invoices.date, "%Y-%m") as month,
+					invoice_items.product_id,
+					invoice_items.revenue,
+					invoice_items.total_orders,
+					invoice_items.quantity_sold,
+					invoice_items.unit_cost,
+					COALESCE(delivery_fees.fee_per_unit, 0) as delivery_fee')
+				->get();
+
+			// Calculate total amount per month (Total Amount Auto = revenue - (total_orders × delivery_fee) - (quantity_sold × unit_cost))
+			// This matches Product::getTotalAmountAttribute() exactly
+			$profitsByMonth = [];
+			foreach ($invoiceItems as $item) {
+				$deliveryFeePerUnit = $item->delivery_fee;
+				$totalDeliveryFee = $item->total_orders * $deliveryFeePerUnit;
+				$totalProductCost = $item->quantity_sold * $item->unit_cost;
+				$totalAmount = $item->revenue - $totalDeliveryFee - $totalProductCost;
+				
+				if (!isset($profitsByMonth[$item->month])) {
+					$profitsByMonth[$item->month] = 0;
+				}
+				$profitsByMonth[$item->month] += $totalAmount;
+			}
+
+			// Get ads costs per month - allocate proportionally based on product revenue per month
+			// This ensures ads costs are matched to the months when revenue was generated
+			$adsByMonth = [];
+			
+			// Get all products with their total ads costs
+			$productsWithAds = DB::table('ads_campaign_product')
+				->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
+				->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
+				->selectRaw('ads_campaign_product.product_id, SUM(ads_campaign_product.amount_spent) as total_ads_cost')
+				->groupBy('ads_campaign_product.product_id')
+				->get();
+			
+			// For each product, allocate its ads cost to months based on revenue proportion
+			foreach ($productsWithAds as $productAds) {
+				// Get revenue per month for this product
+				$productRevenueByMonth = DB::table('invoice_items')
+					->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+					->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+					->where('invoice_items.product_id', $productAds->product_id)
+					->whereBetween('invoices.date', [$chartFrom, $chartTo])
+					->selectRaw('DATE_FORMAT(invoices.date, "%Y-%m") as month, SUM(invoice_items.revenue) as revenue')
+					->groupBy('month')
+					->get();
+				
+				$totalRevenue = $productRevenueByMonth->sum('revenue');
+				
+				if ($totalRevenue > 0) {
+					// Allocate ads cost proportionally based on revenue
+					foreach ($productRevenueByMonth as $monthRevenue) {
+						$proportion = $monthRevenue->revenue / $totalRevenue;
+						$allocatedAdsCost = $productAds->total_ads_cost * $proportion;
+						
+						if (!isset($adsByMonth[$monthRevenue->month])) {
+							$adsByMonth[$monthRevenue->month] = 0;
+						}
+						$adsByMonth[$monthRevenue->month] += $allocatedAdsCost;
+					}
+				} else {
+					// If no revenue, allocate ads cost to campaign start month
+					$campaignMonths = DB::table('ads_campaign_product')
+						->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
+						->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
+						->where('ads_campaign_product.product_id', $productAds->product_id)
+						->whereBetween('ads_campaigns.date_from', [$chartFrom, $chartTo])
+						->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as ads_cost')
+						->groupBy('month')
+						->get();
+					
+					foreach ($campaignMonths as $campaignMonth) {
+						if (!isset($adsByMonth[$campaignMonth->month])) {
+							$adsByMonth[$campaignMonth->month] = 0;
+						}
+						$adsByMonth[$campaignMonth->month] += $campaignMonth->ads_cost;
+					}
+				}
+			}
+			
+			// Get all unique months (from both invoices and ads)
+			$allMonths = array_unique(array_merge(array_keys($profitsByMonth), array_keys($adsByMonth)));
+			sort($allMonths);
+
+			// Combine to get net profit per month (Total Amount - Ads Cost for that month)
+			// This matches Product::getNetProfitAttribute() = Total Amount - Total Ads Cost
+			$profitsChart = collect($allMonths)->map(function($month) use ($profitsByMonth, $adsByMonth) {
+				$totalAmount = isset($profitsByMonth[$month]) ? $profitsByMonth[$month] : 0;
+				$adsCost = isset($adsByMonth[$month]) ? $adsByMonth[$month] : 0;
+				$netProfit = $totalAmount - $adsCost;
+				return (object)[
+					'month' => $month,
+					'total_amount' => $totalAmount,
+					'ads_cost' => $adsCost,
+					'net_profit' => $netProfit
+				];
+			})->values();
+
+			// Ads spending over time
+			$adsChart = DB::table('ads_campaign_product')
+				->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
+				->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
+				->whereBetween('ads_campaigns.date_from', [$chartFrom, $chartTo])
+				->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as spent')
+				->groupBy('month')
+				->orderBy('month')
+				->get();
+
+			// Invoices over time
+			$invoicesChart = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+				->whereBetween('date', [$chartFrom, $chartTo])
+				->selectRaw('DATE_FORMAT(date, "%Y-%m") as month, COUNT(*) as count, SUM(total_amount) as total')
+				->groupBy('month')
+				->orderBy('month')
+				->get();
+
+			$chartData = [
+				'profits' => $profitsChart,
+				'ads' => $adsChart,
+				'invoices' => $invoicesChart,
+			];
+		}
 
 		$byCountry = Country::when(!$isGlobal && $countryId, fn($q) => $q->where('id', $countryId))
 			->withCount([
@@ -76,6 +255,18 @@ class GlobalDashboardController extends Controller
 			'totalExpenses' => $totalExpenses,
 			'totalStockValue' => $totalStockValue,
 			'byCountry' => $byCountry,
+			'totalProfits' => $totalProfits,
+			'totalAdsSpent' => $totalAdsSpent,
+			'profitableProducts' => $profitableProducts,
+			'totalStockQty' => $totalStockQty,
+			'lowStockProducts' => $lowStockProducts,
+			'totalSourcings' => $totalSourcings,
+			'validatedSourcings' => $validatedSourcings,
+			'pendingSourcings' => $pendingSourcings,
+			'totalAdsCampaigns' => $totalAdsCampaigns,
+			'chartData' => $chartData,
+			'from' => $from,
+			'to' => $to,
 		]);
 	}
 }

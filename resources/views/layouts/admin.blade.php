@@ -103,7 +103,7 @@
 			<div class="flex">
 				<!-- Sidebar -->
 				<aside
-					class="fixed inset-y-0 left-0 z-30 w-72 transform transition-all duration-300 md:transform-none md:static bg-gradient-to-b from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 border-r border-slate-700 dark:border-slate-800 overflow-y-auto"
+					class="fixed inset-y-0 left-0 z-30 w-72 transform transition-all duration-300 md:transform-none md:static bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 dark:from-indigo-950 dark:via-purple-950 dark:to-indigo-900 border-r border-indigo-700/50 dark:border-indigo-800/50 overflow-y-auto shadow-2xl"
 					:class="{ 
 						'-translate-x-full': !sidebarOpen,
 						'md:w-72': !sidebarCollapsed,
@@ -113,7 +113,7 @@
 				>
 					<div class="flex h-full flex-col justify-between p-4">
 						<div>
-							<div class="hidden md:flex items-center justify-center px-2 pb-6 border-b border-slate-700/50" :class="{ 'justify-start': !sidebarCollapsed }">
+							<div class="hidden md:flex items-center justify-center px-2 pb-6 border-b border-indigo-700/50 dark:border-indigo-800/50" :class="{ 'justify-start': !sidebarCollapsed }">
 								<a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 group" :class="{ 'justify-center': sidebarCollapsed }">
 									<svg class="h-7 w-7 text-blue-400 shrink-0 group-hover:text-blue-300 transition-colors" viewBox="0 0 24 24" fill="currentColor">
 										<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
@@ -123,34 +123,34 @@
 							</div>
 
 							<nav class="space-y-2 pt-6">
-								<a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Dashboard">
+								<a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Dashboard">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12l9-9 9 9h-2v8a2 2 0 0 1-2 2h-4v-6H9v6H7a2 2 0 0 1-2-2v-8z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Dashboard</span>
 								</a>
 								
 								<!-- Products Section -->
 								<div x-data="{ open: {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('suppliers.*') ? 'true' : 'false' }} }">
-									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('suppliers.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Products">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('suppliers.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Products">
 										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
 										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Products</span>
 										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
 										</svg>
 									</button>
-									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
-										<a href="{{ route('products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.index') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Products">
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-indigo-700/50 dark:border-indigo-800/50 pl-4">
+										<a href="{{ route('products.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.index') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Products">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6H8l-1-2H4a1 1 0 0 0 0 2h2l3.6 7.59L8.25 17A1.5 1.5 0 0 0 9.75 19h9.5a1 1 0 0 0 0-2h-9l1.1-2h7.27a2 2 0 0 0 1.86-1.25l2-5A1 1 0 0 0 20 6z"/></svg>
 											<span class="whitespace-nowrap">Products</span>
 										</a>
-										<a href="{{ route('products.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.create') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Add Product">
+										<a href="{{ route('products.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('products.create') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Add Product">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
 											<span class="whitespace-nowrap">Add Product</span>
 										</a>
-										<a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('categories.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Categories">
+										<a href="{{ route('categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('categories.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Categories">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/></svg>
 											<span class="whitespace-nowrap">Categories</span>
 										</a>
-										<a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Suppliers">
+										<a href="{{ route('suppliers.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('suppliers.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Suppliers">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/></svg>
 											<span class="whitespace-nowrap">Suppliers</span>
 										</a>
@@ -158,61 +158,61 @@
 								</div>
 								<!-- Sourcing Section -->
 								<div x-data="{ open: {{ request()->routeIs('sourcings.*') || request()->routeIs('shipping-methods.*') ? 'true' : 'false' }} }">
-									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.*') || request()->routeIs('shipping-methods.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Sourcing">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.*') || request()->routeIs('shipping-methods.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Sourcing">
 										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
 										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Sourcing</span>
 										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
 										</svg>
 									</button>
-									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
-										<a href="{{ route('sourcings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.index') || request()->routeIs('sourcings.show') || request()->routeIs('sourcings.edit') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Sourcing">
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-indigo-700/50 dark:border-indigo-800/50 pl-4">
+										<a href="{{ route('sourcings.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.index') || request()->routeIs('sourcings.show') || request()->routeIs('sourcings.edit') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Sourcing">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
 											<span class="whitespace-nowrap">Sourcing</span>
 										</a>
-										<a href="{{ route('sourcings.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.create') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Sourcing Creation">
+										<a href="{{ route('sourcings.create') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('sourcings.create') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Sourcing Creation">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
 											<span class="whitespace-nowrap">Sourcing Creation</span>
 										</a>
-										<a href="{{ route('shipping-methods.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('shipping-methods.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Shipping Methods">
+										<a href="{{ route('shipping-methods.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('shipping-methods.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Shipping Methods">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
 											<span class="whitespace-nowrap">Shipping Methods</span>
 										</a>
 									</div>
 								</div>
-								<a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Invoices">
+								<a href="{{ route('invoices.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Invoices">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>
 								</a>
 								<!-- Ads Section -->
 								<div x-data="{ open: {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'true' : 'false' }} }">
-									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
 										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
 										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Ads</span>
 										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
 										</svg>
 									</button>
-									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-slate-700/50 pl-4">
-										<a href="{{ route('ads-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Ads Campaigns">
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-indigo-700/50 dark:border-indigo-800/50 pl-4">
+										<a href="{{ route('ads-campaigns.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Ads Campaigns">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16v4H4zm0 6h10v4H4zm0 6h16v4H4z"/></svg>
 											<span class="whitespace-nowrap">Ads Campaigns</span>
 										</a>
-										<a href="{{ route('ads-platforms.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-platforms.*') ? 'bg-blue-600/80 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700/50' }}" title="Manage Platforms">
+										<a href="{{ route('ads-platforms.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-platforms.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Manage Platforms">
 											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
 											<span class="whitespace-nowrap">Manage Platforms</span>
 										</a>
 									</div>
 								</div>
-								<a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-slate-300 hover:text-white hover:bg-slate-700/50' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Settings">
+								<a href="{{ route('admin.settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Settings">
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Settings</span>
 								</a>
 							</nav>
 						</div>
 
-						<div class="pt-4 mt-6 border-t border-slate-700/50 space-y-2">
-							<a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-700/50 transition-all duration-200" :class="{ 'justify-center': sidebarCollapsed }" title="Profile">
+						<div class="pt-4 mt-6 border-t border-indigo-700/50 dark:border-indigo-800/50 space-y-2">
+							<a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60 transition-all duration-200" :class="{ 'justify-center': sidebarCollapsed }" title="Profile">
 								<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-8 2-8 4v2h16v-2c0-2-4-4-8-4z"/></svg>
 								<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Profile</span>
 							</a>
