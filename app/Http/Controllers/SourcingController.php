@@ -18,16 +18,19 @@ class SourcingController extends Controller
 	 */
 	public function index(Request $request)
 	{
+		$countryId = (int) ($request->input('country_id') ?? $request->session()->get('current_country_id'));
 		$q = trim((string) $request->input('q'));
 
 		$sourcings = Sourcing::with(['category', 'country', 'supplier'])
+			->when($countryId, fn($query) => $query->where('country_id', $countryId))
 			->when($q, fn($query) => $query->where('product_name', 'like', "%{$q}%"))
 			->orderBy('sourcing_date', 'desc')
 			->orderBy('created_at', 'desc')
 			->paginate(15)
 			->withQueryString();
 
-		return view('sourcings.index', compact('sourcings', 'q'));
+		$countries = Country::orderBy('name')->get();
+		return view('sourcings.index', compact('sourcings', 'q', 'countries', 'countryId'));
 	}
 
 	/**

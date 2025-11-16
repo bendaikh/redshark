@@ -13,6 +13,15 @@
 						<input name="q" value="{{ $q }}" class="mt-1 w-64 rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" placeholder="{{ __('Product name') }}">
 					</div>
 					<div>
+						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
+						<select name="country_id" class="mt-1 w-56 rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
+							<option value="">{{ __('All') }}</option>
+							@foreach($countries as $c)
+								<option value="{{ $c->id }}" {{ (string)$countryId === (string)$c->id ? 'selected' : '' }}>{{ $c->name }}</option>
+							@endforeach
+						</select>
+					</div>
+					<div>
 						<button class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800">{{ __('Filter') }}</button>
 					</div>
 				</form>
