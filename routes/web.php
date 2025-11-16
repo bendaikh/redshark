@@ -14,6 +14,10 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SourcingController;
 use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\BalanceController;
+use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -30,9 +34,7 @@ Route::get('/', function () {
 	return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Serve storage files (workaround for Windows symlink issues)
 Route::get('/storage/{path}', function ($path) {
@@ -76,6 +78,11 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('sourcings', SourcingController::class);
 		Route::post('sourcings/{sourcing}/validate', [SourcingController::class, 'validateSourcing'])->name('sourcings.validate');
 		Route::resource('shipping-methods', ShippingMethodController::class);
+		
+		// Accounting resources
+		Route::resource('expense-categories', ExpenseCategoryController::class);
+		Route::resource('balances', BalanceController::class);
+		Route::resource('expenses', ExpenseController::class);
 	});
 
 require __DIR__.'/auth.php';

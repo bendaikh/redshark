@@ -184,6 +184,30 @@
 									<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2zm2 5h4v2h-4V7zm0 4h4v2h-4v-2z"/></svg>
 									<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap">Invoices</span>
 								</a>
+								<!-- Accounting Section -->
+								<div x-data="{ open: {{ request()->routeIs('expense-categories.*') || request()->routeIs('balances.*') || request()->routeIs('expenses.*') ? 'true' : 'false' }} }">
+									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('expense-categories.*') || request()->routeIs('balances.*') || request()->routeIs('expenses.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Accounting">
+										<svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm1 4v2h8V6H8zm0 4v2h8v-2H8zm0 4v2h6v-2H8z"/></svg>
+										<span x-show="!sidebarCollapsed" x-transition class="whitespace-nowrap flex-1 text-left">Accounting</span>
+										<svg x-show="!sidebarCollapsed" x-transition class="h-4 w-4 shrink-0 transition-transform duration-200" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+										</svg>
+									</button>
+									<div x-show="open && !sidebarCollapsed" x-transition class="ml-4 mt-1 space-y-1 border-l-2 border-indigo-700/50 dark:border-indigo-800/50 pl-4">
+										<a href="{{ route('expense-categories.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('expense-categories.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Expense Categories">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/></svg>
+											<span class="whitespace-nowrap">Expense Categories</span>
+										</a>
+										<a href="{{ route('balances.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('balances.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Balances">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+											<span class="whitespace-nowrap">Balances</span>
+										</a>
+										<a href="{{ route('expenses.index') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('expenses.*') ? 'bg-blue-600/80 text-white' : 'text-indigo-200 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" title="Expenses">
+											<svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10h10M7 14h6M7 2h10a2 2 0 0 1 2 2v3H5V4a2 2 0 0 1 2-2zM5 9h14v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
+											<span class="whitespace-nowrap">Expenses</span>
+										</a>
+									</div>
+								</div>
 								<!-- Ads Section -->
 								<div x-data="{ open: {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'true' : 'false' }} }">
 									<button @click="open = !open" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs('ads-campaigns.*') || request()->routeIs('ads-platforms.*') ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' : 'text-indigo-100 hover:text-white hover:bg-indigo-800/60 dark:hover:bg-indigo-900/60' }}" :class="{ 'justify-center': sidebarCollapsed }" title="Ads">
