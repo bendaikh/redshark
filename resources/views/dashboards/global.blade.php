@@ -36,49 +36,172 @@
 			</form>
 		</div>
 
-		<!-- Main KPI Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
-				<div class="flex items-center justify-between">
-					<div>
-						<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Profits') }}</div>
-						<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalProfits, 2) }}</div>
+
+		<!-- Accounting Data Section -->
+		<div class="mb-6">
+			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Accounting Data') }}</h3>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
+					<div class="flex items-center justify-between">
+						<div>
+							<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Balance') }}</div>
+							<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+								${{ number_format($accountingBalance, 2) }}
+							</div>
+						</div>
+						<div class="h-12 w-12 rounded-md bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300 flex items-center justify-center">
+							<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+								<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+							</svg>
+						</div>
 					</div>
-					<div class="h-12 w-12 rounded-md bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300 flex items-center justify-center">
-						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
+					<div class="flex items-center justify-between">
+						<div>
+							<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Expenses') }}</div>
+							<div class="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">
+								${{ number_format($accountingExpenses, 2) }}
+							</div>
+						</div>
+						<div class="h-12 w-12 rounded-md bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300 flex items-center justify-center">
+							<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+								<path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+							</svg>
+						</div>
+					</div>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 {{ $accountingNetProfit >= 0 ? 'border-green-500' : 'border-red-500' }}">
+					<div class="flex items-center justify-between">
+						<div>
+							<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Net Profit Balance') }}</div>
+							<div class="mt-2 text-3xl font-bold {{ $accountingNetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+								${{ number_format($accountingNetProfit, 2) }}
+							</div>
+							<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+								{{ __('Total Balance - All Expenses') }}
+							</p>
+						</div>
+						<div class="h-12 w-12 rounded-md {{ $accountingNetProfit >= 0 ? 'bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300' }} flex items-center justify-center">
+							<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+								<path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+							</svg>
+						</div>
 					</div>
 				</div>
 			</div>
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
-				<div class="flex items-center justify-between">
-					<div>
-						<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spends') }}</div>
-						<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent, 2) }}</div>
-					</div>
-					<div class="h-12 w-12 rounded-md bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300 flex items-center justify-center">
-						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2 1.96V12.5c-1.79-.1-3.33-1.39-3.33-3.4 0-1.93 1.57-3.4 3.33-3.4V4h2.67v1.1c1.71.36 3.16 1.46 3.27 3.4H12.5c-.1-1.05-.82-1.87-2-1.96V11.5c1.79.1 3.33 1.39 3.33 3.4 0 1.93-1.57 3.4-3.33 3.4z"/></svg>
+		</div>
+
+		<!-- Marketing Performance Section -->
+		<div class="mb-6">
+			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Marketing Performance') }}</h3>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-indigo-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Leads') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalLeads ?? 0) }}</p>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spend') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent ?? 0, 2) }}</p>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-amber-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Cost Per Lead') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+						{{ $costPerLead !== null ? '$' . number_format($costPerLead, 2) : __('N/A') }}
+					</p>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Orders') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalOrders ?? 0) }}</p>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Cost Per Delivered Order') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+						{{ $costPerDelivered !== null ? '$' . number_format($costPerDelivered, 2) : __('N/A') }}
+					</p>
+				</div>
+				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
+					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Delivery Rate') }}</p>
+					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+						{{ $deliveryRate !== null ? number_format($deliveryRate, 2) . '%' : __('N/A') }}
+					</p>
+					<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('Total Orders / Total Leads') }}</p>
+				</div>
+			</div>
+
+			<div class="mt-6">
+				<h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Total Ads Spend by Platform') }}</h4>
+				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+					<div class="p-6">
+						@if(($totalSpendByPlatform ?? collect())->isEmpty())
+							<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No ads spend data available yet.') }}</p>
+						@else
+							<div class="space-y-3">
+								@foreach($totalSpendByPlatform as $platformStat)
+									<div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2 last:border-0 last:pb-0">
+										<div>
+											<p class="text-sm font-medium text-gray-700 dark:text-gray-200">
+												{{ $platformStat->platform ?? __('Unknown Platform') }}
+											</p>
+										</div>
+										<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+											${{ number_format($platformStat->total_spend ?? 0, 2) }}
+										</p>
+									</div>
+								@endforeach
+							</div>
+						@endif
 					</div>
 				</div>
 			</div>
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
-				<div class="flex items-center justify-between">
-					<div>
-						<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Invoices') }}</div>
-						<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalInvoices) }}</div>
+
+			<!-- Business KPIs relocated under marketing performance -->
+			<div class="mt-8">
+				<h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Business KPIs') }}</h4>
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Profits') }}</div>
+								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalProfits, 2) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+							</div>
+						</div>
 					</div>
-					<div class="h-12 w-12 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-center">
-						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2z"/></svg>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spends') }}</div>
+								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent, 2) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2 1.96V12.5c-1.79-.1-3.33-1.39-3.33-3.4 0-1.93 1.57-3.4 3.33-3.4V4h2.67v1.1c1.71.36 3.16 1.46 3.27 3.4H12.5c-.1-1.05-.82-1.87-2-1.96V11.5c1.79.1 3.33 1.39 3.33 3.4 0 1.93-1.57 3.4-3.33 3.4z"/></svg>
+							</div>
+						</div>
 					</div>
-				</div>
-			</div>
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
-				<div class="flex items-center justify-between">
-					<div>
-						<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Stock Quantity') }}</div>
-						<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalStockQty) }}</div>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Invoices') }}</div>
+								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalInvoices) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2z"/></svg>
+							</div>
+						</div>
 					</div>
-					<div class="h-12 w-12 rounded-md bg-purple-50 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center">
-						<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Stock Quantity') }}</div>
+								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalStockQty) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-purple-50 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\AdsCampaign;
 use App\Models\Sourcing;
+use App\Models\Balance;
+use App\Models\Expense;
 
 class GlobalDashboardController extends Controller
 {
@@ -25,20 +27,23 @@ class GlobalDashboardController extends Controller
 			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
 			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
 			->count();
-		// Calculate ads spent from pivot table (clone query for reuse)
-		$adsSpentQuery = DB::table('ads_campaign_product')
+		// Calculate ads and marketing stats from pivot table (clone query for reuse)
+		$adsStatsBaseQuery = DB::table('ads_campaign_product')
 			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId));
 		
 		// Apply date filters if provided
 		if ($from) {
-			$adsSpentQuery->whereDate('ads_campaigns.date_from', '>=', $from);
+			$adsStatsBaseQuery->whereDate('ads_campaigns.date_from', '>=', $from);
 		}
 		if ($to) {
-			$adsSpentQuery->whereDate('ads_campaigns.date_to', '<=', $to);
+			$adsStatsBaseQuery->whereDate('ads_campaigns.date_to', '<=', $to);
 		}
-		
-		$totalExpenses = ($adsSpentQuery->sum('ads_campaign_product.amount_spent') ?: 0)
+
+		$totalAdsSpent = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
+		$totalLeads = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.leads') ?? 0;
+
+		$totalExpenses = $totalAdsSpent
 			+ Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
 				->when($from, fn($q) => $q->whereDate('date', '>=', $from))
 				->when($to, fn($q) => $q->whereDate('date', '<=', $to))
@@ -46,8 +51,25 @@ class GlobalDashboardController extends Controller
 		$totalStockValue = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
 			->sum(\DB::raw('quantity * cost'));
 
-		// Calculate total ads spent (reuse the query)
-		$totalAdsSpent = (clone $adsSpentQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
+		// Marketing KPIs
+		$ordersQuery = DB::table('invoice_items')
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('invoices.date', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to));
+
+		$totalOrders = (clone $ordersQuery)->sum('invoice_items.total_orders') ?? 0;
+
+		$costPerLead = $totalLeads > 0 ? $totalAdsSpent / $totalLeads : null;
+		$costPerDelivered = $totalOrders > 0 ? $totalAdsSpent / $totalOrders : null;
+		$deliveryRate = $totalLeads > 0 ? ($totalOrders / $totalLeads) * 100 : null;
+
+		$totalSpendByPlatform = (clone $adsStatsBaseQuery)
+			->join('ads_platforms', 'ads_campaigns.platform_id', '=', 'ads_platforms.id')
+			->select('ads_platforms.name as platform', DB::raw('SUM(ads_campaign_product.amount_spent) as total_spend'))
+			->groupBy('ads_platforms.name')
+			->orderByDesc('total_spend')
+			->get();
 
 		// Calculate total profits (sum of all products' net_profit)
 		$products = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->get();
@@ -78,6 +100,19 @@ class GlobalDashboardController extends Controller
 			->when($from, fn($q) => $q->whereDate('date_from', '>=', $from))
 			->when($to, fn($q) => $q->whereDate('date_to', '<=', $to))
 			->count();
+
+		// Accounting data
+		$accountingBalance = Balance::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+			->sum('amount') ?? 0;
+		
+		$accountingExpenses = Expense::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+			->sum('amount') ?? 0;
+		
+		$accountingNetProfit = $accountingBalance - $accountingExpenses;
 
 		// Chart data - Time-based metrics (always generate, use all-time if no filters)
 		$chartData = [];
@@ -257,6 +292,12 @@ class GlobalDashboardController extends Controller
 			'byCountry' => $byCountry,
 			'totalProfits' => $totalProfits,
 			'totalAdsSpent' => $totalAdsSpent,
+			'totalLeads' => $totalLeads,
+			'totalOrders' => $totalOrders,
+			'costPerLead' => $costPerLead,
+			'costPerDelivered' => $costPerDelivered,
+			'deliveryRate' => $deliveryRate,
+			'totalSpendByPlatform' => $totalSpendByPlatform,
 			'profitableProducts' => $profitableProducts,
 			'totalStockQty' => $totalStockQty,
 			'lowStockProducts' => $lowStockProducts,
@@ -265,6 +306,9 @@ class GlobalDashboardController extends Controller
 			'pendingSourcings' => $pendingSourcings,
 			'totalAdsCampaigns' => $totalAdsCampaigns,
 			'chartData' => $chartData,
+			'accountingBalance' => $accountingBalance,
+			'accountingExpenses' => $accountingExpenses,
+			'accountingNetProfit' => $accountingNetProfit,
 			'from' => $from,
 			'to' => $to,
 		]);
