@@ -68,6 +68,33 @@
                 </div>
             </div>
 
+            <!-- Revenue Trends Section -->
+            <div class="mb-6">
+                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                                    <span class="inline-flex items-center">
+                                        <svg class="w-6 h-6 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                        </svg>
+                                        {{ __('REVENUE') }}
+                                    </span>
+                                </h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                    {{ number_format($totalOrders ?? 0) }} {{ __('ORDERS') }}
+                                </p>
+                            </div>
+                            <button class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                {{ __('Select Date Range') }}
+                            </button>
+                        </div>
+                        <div id="revenueChart" class="w-full" style="height: 250px;"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Marketing Performance Section -->
             <div class="mb-6">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Marketing Performance') }}</h3>
@@ -157,4 +184,115 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDates = @json($chartDates ?? []);
+            const chartRevenues = @json($chartRevenues ?? []);
+
+            const options = {
+                chart: {
+                    type: 'area',
+                    height: 250,
+                    toolbar: {
+                        show: false
+                    },
+                    sparkline: {
+                        enabled: false
+                    },
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                series: [{
+                    name: 'Revenue',
+                    data: chartRevenues
+                }],
+                xaxis: {
+                    categories: chartDates,
+                    labels: {
+                        style: {
+                            colors: '#9ca3af',
+                            fontSize: '12px'
+                        },
+                        rotate: -45,
+                        rotateAlways: false,
+                        hideOverlappingLabels: true,
+                        showDuplicates: false,
+                        trim: false
+                    },
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#9ca3af',
+                            fontSize: '12px'
+                        },
+                        formatter: function(value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2,
+                    colors: ['#10b981']
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.4,
+                        opacityTo: 0.1,
+                        stops: [0, 90, 100]
+                    },
+                    colors: ['#10b981']
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                grid: {
+                    borderColor: '#e5e7eb',
+                    strokeDashArray: 4,
+                    xaxis: {
+                        lines: {
+                            show: false
+                        }
+                    },
+                    yaxis: {
+                        lines: {
+                            show: true
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    theme: 'light',
+                    y: {
+                        formatter: function(value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                },
+                markers: {
+                    size: 0,
+                    hover: {
+                        size: 5
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#revenueChart"), options);
+            chart.render();
+        });
+    </script>
+    @endpush
 </x-app-layout>

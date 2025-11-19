@@ -47,6 +47,25 @@ class DashboardController extends Controller
             ->groupBy('ads_platforms.name')
             ->orderByDesc('total_spend')
             ->get();
+
+        // Revenue trends by day (last 30 days)
+        $revenueTrends = DB::table('invoices')
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->select(
+                DB::raw('DATE(date) as date'),
+                DB::raw('SUM(total_amount) as total_revenue')
+            )
+            ->where('date', '>=', now()->subDays(30))
+            ->groupBy(DB::raw('DATE(date)'))
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // Prepare chart data
+        $chartDates = $revenueTrends->pluck('date')->map(function($date) {
+            return date('M d', strtotime($date));
+        })->toArray();
+        
+        $chartRevenues = $revenueTrends->pluck('total_revenue')->toArray();
         
         return view('dashboard', compact(
             'totalBalance',
@@ -58,7 +77,9 @@ class DashboardController extends Controller
             'costPerLead',
             'costPerDelivered',
             'deliveryRate',
-            'totalSpendByPlatform'
+            'totalSpendByPlatform',
+            'chartDates',
+            'chartRevenues'
         ));
     }
 }

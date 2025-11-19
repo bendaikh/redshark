@@ -114,6 +114,28 @@ class GlobalDashboardController extends Controller
 		
 		$accountingNetProfit = $accountingBalance - $accountingExpenses;
 
+		// Revenue trends by day (last 30 days or filtered range) - Using Accounting Balances
+		$revenueTrendsFrom = $from ?: now()->subDays(30)->format('Y-m-d');
+		$revenueTrendsTo = $to ?: now()->format('Y-m-d');
+		
+		$revenueTrends = DB::table('balances')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->select(
+				DB::raw('DATE(date) as date'),
+				DB::raw('SUM(amount) as total_revenue')
+			)
+			->whereBetween('date', [$revenueTrendsFrom, $revenueTrendsTo])
+			->groupBy(DB::raw('DATE(date)'))
+			->orderBy('date', 'asc')
+			->get();
+
+		// Prepare chart data
+		$chartDates = $revenueTrends->pluck('date')->map(function($date) {
+			return date('M d', strtotime($date));
+		})->toArray();
+		
+		$chartRevenues = $revenueTrends->pluck('total_revenue')->toArray();
+
 		// Chart data - Time-based metrics (always generate, use all-time if no filters)
 		$chartData = [];
 		$minDate = Invoice::min('date');
@@ -309,6 +331,8 @@ class GlobalDashboardController extends Controller
 			'accountingBalance' => $accountingBalance,
 			'accountingExpenses' => $accountingExpenses,
 			'accountingNetProfit' => $accountingNetProfit,
+			'chartDates' => $chartDates,
+			'chartRevenues' => $chartRevenues,
 			'from' => $from,
 			'to' => $to,
 		]);

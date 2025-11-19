@@ -36,6 +36,43 @@
 			</form>
 		</div>
 
+		<!-- Revenue Trends Section -->
+		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
+			<div class="p-6">
+				<div class="flex items-center justify-between mb-4">
+					<div>
+				<h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+					<span class="inline-flex items-center">
+						<svg class="w-7 h-7 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						{{ __('ACCOUNTING BALANCE') }}
+					</span>
+				</h3>
+						<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+							{{ number_format($totalOrders ?? 0) }} {{ __('ORDERS') }}
+						</p>
+						@if(!$from && !$to)
+							<p class="text-xs text-orange-600 dark:text-orange-400 mt-1">
+								{{ __('Showing last 30 days') }}
+							</p>
+						@endif
+					</div>
+					<div class="flex items-center space-x-2">
+					<div class="text-right">
+						<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Balance') }}</p>
+						<p class="text-2xl font-bold text-green-600 dark:text-green-400">
+							${{ number_format(array_sum($chartRevenues ?? []), 2) }}
+						</p>
+					</div>
+					</div>
+				</div>
+				<div class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+					{{ __('Balance trends by day') }}
+				</div>
+				<div id="revenueChart" class="w-full" style="height: 250px;"></div>
+			</div>
+		</div>
 
 		<!-- Accounting Data Section -->
 		<div class="mb-6">
@@ -406,6 +443,112 @@
 		document.addEventListener('DOMContentLoaded', function() {
 			const isDark = document.documentElement.classList.contains('dark');
 			const chartTheme = { mode: isDark ? 'dark' : 'light' };
+
+			// Revenue Trends Chart
+			const chartDates = @json($chartDates ?? []);
+			const chartRevenues = @json($chartRevenues ?? []);
+
+			if (chartDates.length > 0) {
+				const revenueChart = new ApexCharts(document.querySelector("#revenueChart"), {
+					chart: {
+						type: 'area',
+						height: 250,
+						toolbar: {
+							show: false
+						},
+						sparkline: {
+							enabled: false
+						},
+						zoom: {
+							enabled: false
+						}
+					},
+					series: [{
+						name: 'Balance',
+						data: chartRevenues
+					}],
+					xaxis: {
+						categories: chartDates,
+						labels: {
+							style: {
+								colors: isDark ? '#9ca3af' : '#6b7280',
+								fontSize: '11px'
+							},
+							rotate: -45,
+							rotateAlways: false,
+							hideOverlappingLabels: true,
+							showDuplicates: false,
+							trim: false
+						},
+						axisBorder: {
+							show: false
+						},
+						axisTicks: {
+							show: false
+						}
+					},
+					yaxis: {
+						labels: {
+							style: {
+								colors: isDark ? '#9ca3af' : '#6b7280',
+								fontSize: '12px'
+							},
+							formatter: function(value) {
+								return '$' + value.toFixed(2);
+							}
+						}
+					},
+					stroke: {
+						curve: 'smooth',
+						width: 3,
+						colors: ['#10b981']
+					},
+					fill: {
+						type: 'gradient',
+						gradient: {
+							shadeIntensity: 1,
+							opacityFrom: 0.5,
+							opacityTo: 0.1,
+							stops: [0, 90, 100]
+						},
+						colors: ['#10b981']
+					},
+					dataLabels: {
+						enabled: false
+					},
+					grid: {
+						borderColor: isDark ? '#374151' : '#e5e7eb',
+						strokeDashArray: 4,
+						xaxis: {
+							lines: {
+								show: false
+							}
+						},
+						yaxis: {
+							lines: {
+								show: true
+							}
+						}
+					},
+					tooltip: {
+						enabled: true,
+						theme: isDark ? 'dark' : 'light',
+						y: {
+							formatter: function(value) {
+								return '$' + value.toFixed(2);
+							}
+						}
+					},
+					markers: {
+						size: 0,
+						hover: {
+							size: 5,
+							sizeOffset: 3
+						}
+					}
+				});
+				revenueChart.render();
+			}
 
 			// Declare chart data variables once (if available)
 			@if(!empty($chartData) && isset($chartData['profits']) && !$chartData['profits']->isEmpty())
