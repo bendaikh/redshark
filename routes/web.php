@@ -18,6 +18,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\TestingProductController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -83,6 +84,9 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('expense-categories', ExpenseCategoryController::class);
 		Route::resource('balances', BalanceController::class);
 		Route::resource('expenses', ExpenseController::class);
+		
+		// Testing Products
+		Route::resource('testing-products', TestingProductController::class);
 	});
 
 require __DIR__.'/auth.php';
