@@ -123,6 +123,9 @@
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
 										<div class="flex items-center justify-end gap-2">
+											<a href="{{ route('testing-products.assign-media-buyers', $testingProduct) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" title="Assign Media Buyers">
+												{{ __('Assign') }}
+											</a>
 											<a href="{{ route('testing-products.edit', $testingProduct) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
 												{{ __('Edit') }}
 											</a>

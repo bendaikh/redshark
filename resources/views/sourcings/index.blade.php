@@ -41,7 +41,7 @@
 								<th class="py-2">{{ __('Category') }}</th>
 								<th class="py-2">{{ __('Quantity') }}</th>
 								<th class="py-2">{{ __('Unit Price') }}</th>
-								<th class="py-2">{{ __('Price Total') }}</th>
+								<th class="py-2">{{ __('Final Price Total') }}</th>
 								<th class="py-2">{{ __('Cost Total') }}</th>
 								<th class="py-2">{{ __('Shipping Type') }}</th>
 								<th class="py-2">{{ __('Supplier') }}</th>
@@ -57,7 +57,7 @@
 									<td class="py-2">{{ $sourcing->category->name ?? __('N/A') }}</td>
 									<td class="py-2">{{ number_format($sourcing->quantity) }}</td>
 									<td class="py-2">{{ number_format($sourcing->price, 2) }}</td>
-									<td class="py-2">{{ number_format($sourcing->cost, 2) }}</td>
+									<td class="py-2">{{ number_format($sourcing->final_price_total, 2) }}</td>
 									<td class="py-2">{{ number_format($sourcing->cost_total, 2) }}</td>
 									<td class="py-2">{{ $sourcing->shipping_type ? ucfirst(str_replace('_', ' ', $sourcing->shipping_type)) : __('N/A') }}</td>
 									<td class="py-2">{{ $sourcing->supplier->name ?? __('N/A') }}</td>
@@ -69,18 +69,41 @@
 										@endif
 									</td>
 									<td class="py-2">{{ $sourcing->sourcing_date ? $sourcing->sourcing_date->format('Y-m-d') : __('N/A') }}</td>
-									<td class="py-2 text-right space-x-2">
-										@if(!$sourcing->validated)
-											<form action="{{ route('sourcings.validate', $sourcing) }}" method="POST" class="inline">
-												@csrf
-												<button type="submit" class="text-green-600 hover:underline" onclick="return confirm('{{ __('Validate this sourcing and create the product?') }}')">{{ __('Validate') }}</button>
+									<td class="py-2 text-right">
+										<div class="flex items-center justify-end gap-2">
+											@if(!$sourcing->validated)
+												<form action="{{ route('sourcings.validate', $sourcing) }}" method="POST" class="inline">
+													@csrf
+													<button type="submit" class="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors" title="{{ __('Validate') }}" onclick="return confirm('{{ __('Validate this sourcing and create the product?') }}')">
+														<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+														</svg>
+													</button>
+												</form>
+											@else
+												<form action="{{ route('sourcings.revoke', $sourcing) }}" method="POST" class="inline">
+													@csrf
+													<button type="submit" class="p-1.5 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors" title="{{ __('Revoke') }}" onclick="return confirm('{{ __('Revoke this sourcing validation?') }}')">
+														<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+														</svg>
+													</button>
+												</form>
+											@endif
+											<a href="{{ route('sourcings.edit', $sourcing) }}" class="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors" title="{{ __('Edit') }}">
+												<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+												</svg>
+											</a>
+											<form action="{{ route('sourcings.destroy', $sourcing) }}" method="POST" class="inline">
+												@csrf @method('DELETE')
+												<button type="submit" class="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="{{ __('Delete') }}" onclick="return confirm('{{ __('Delete this sourcing?') }}')">
+													<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+													</svg>
+												</button>
 											</form>
-										@endif
-										<a href="{{ route('sourcings.edit', $sourcing) }}" class="text-indigo-600 hover:underline">{{ __('Edit') }}</a>
-										<form action="{{ route('sourcings.destroy', $sourcing) }}" method="POST" class="inline">
-											@csrf @method('DELETE')
-											<button type="submit" class="text-red-600 hover:underline" onclick="return confirm('{{ __('Delete this sourcing?') }}')">{{ __('Delete') }}</button>
-										</form>
+										</div>
 									</td>
 								</tr>
 							@endforeach

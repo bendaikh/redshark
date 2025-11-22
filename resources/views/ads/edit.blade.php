@@ -40,7 +40,7 @@
 						</div>
 						<div>
 							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
-							<select name="country_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
+							<select name="country_id" id="countrySelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
 								@foreach($countries as $c)
 									<option value="{{ $c->id }}" {{ old('country_id', $adsCampaign->country_id) == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
 								@endforeach
@@ -84,7 +84,7 @@
 	</div>
 
 	<script>
-		const products = @json($products);
+		let products = @json($products);
 		@php
 			$existingProductsData = $adsCampaign->products->map(function($p) {
 				return [
@@ -99,6 +99,58 @@
 		let productRowIndex = 0;
 		const addedProductIds = new Set();
 
+		// Listen to country selection changes
+		document.getElementById('countrySelect').addEventListener('change', function() {
+			const countryId = this.value;
+			const productSelect = document.getElementById('productSelect');
+			
+			if (countryId) {
+				// Fetch products for selected country
+				fetch(`{{ route('ads-campaigns.products-by-country') }}?country_id=${countryId}`)
+					.then(response => response.json())
+					.then(data => {
+						products = data;
+						updateProductSelect();
+						productSelect.disabled = false;
+						
+						// Clear existing product selections when country changes
+						const container = document.getElementById('productsContainer');
+						container.innerHTML = '';
+						addedProductIds.clear();
+						productRowIndex = 0;
+						
+						const noProductsMessage = document.getElementById('noProductsMessage');
+						if (noProductsMessage) {
+							noProductsMessage.style.display = 'block';
+						}
+					})
+					.catch(error => {
+						console.error('Error fetching products:', error);
+						productSelect.innerHTML = '<option value="">{{ __("Error loading products") }}</option>';
+						productSelect.disabled = true;
+					});
+			} else {
+				products = [];
+				productSelect.innerHTML = '<option value="">{{ __("Please select a country first") }}</option>';
+				productSelect.disabled = true;
+			}
+		});
+
+		function updateProductSelect() {
+			const productSelect = document.getElementById('productSelect');
+			productSelect.innerHTML = '<option value="">{{ __("Select a product to add") }}</option>';
+			
+			products.forEach(product => {
+				if (!addedProductIds.has(product.id)) {
+					const option = document.createElement('option');
+					option.value = product.id;
+					option.textContent = product.name;
+					option.setAttribute('data-name', product.name);
+					productSelect.appendChild(option);
+				}
+			});
+		}
+
 		document.getElementById('productSelect').addEventListener('change', function() {
 			const productId = parseInt(this.value);
 			if (productId && !addedProductIds.has(productId)) {
@@ -107,6 +159,7 @@
 				addProductTag(productId, productName);
 				addedProductIds.add(productId);
 				this.value = ''; // Reset select
+				updateProductSelect(); // Update to remove added product from dropdown
 			}
 		});
 
@@ -144,6 +197,7 @@
 			if (tag) {
 				tag.remove();
 				addedProductIds.delete(productId);
+				updateProductSelect(); // Update to re-add product to dropdown
 				
 				// Show no products message if container is empty
 				const container = document.getElementById('productsContainer');
@@ -161,6 +215,7 @@
 					addProductTag(product.id, product.name, product.amount_spent, product.leads);
 					addedProductIds.add(product.id);
 				});
+				updateProductSelect(); // Update to remove already selected products from dropdown
 			} else {
 				const noProductsMessage = document.getElementById('noProductsMessage');
 				if (noProductsMessage) {

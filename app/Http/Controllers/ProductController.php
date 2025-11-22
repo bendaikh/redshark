@@ -19,7 +19,7 @@ class ProductController extends Controller
 		$countryId = (int) ($request->input('country_id') ?? $request->session()->get('current_country_id'));
 		$q = trim((string) $request->input('q'));
 
-		$products = Product::with(['country', 'category'])
+		$products = Product::with(['country', 'category', 'sourcings'])
 			->when($countryId, fn($query) => $query->where('country_id', $countryId))
 			->when($q, fn($query) => $query->where(function ($qq) use ($q) {
 				$qq->where('name', 'like', "%{$q}%")

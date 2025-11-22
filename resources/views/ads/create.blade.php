@@ -40,7 +40,8 @@
 						</div>
 						<div>
 							<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
-							<select name="country_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
+							<select name="country_id" id="countrySelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" required>
+								<option value="">{{ __('Select Country') }}</option>
 								@foreach($countries as $c)
 									<option value="{{ $c->id }}" {{ old('country_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
 								@endforeach
@@ -53,11 +54,8 @@
 					
 					<div class="border-t border-gray-200 dark:border-gray-700 pt-4">
 						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{{ __('Select Products') }}</label>
-						<select id="productSelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100">
-							<option value="">{{ __('Select a product to add') }}</option>
-							@foreach($products as $product)
-								<option value="{{ $product->id }}" data-name="{{ $product->name }}">{{ $product->name }}</option>
-							@endforeach
+						<select id="productSelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100" disabled>
+							<option value="">{{ __('Please select a country first') }}</option>
 						</select>
 						@error('products')
 							<p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -84,9 +82,62 @@
 	</div>
 
 	<script>
-		const products = @json($products);
+		let products = [];
 		let productRowIndex = 0;
 		const addedProductIds = new Set();
+
+		// Function to load products for a country
+		function loadProductsForCountry(countryId) {
+			const productSelect = document.getElementById('productSelect');
+			
+			if (countryId) {
+				// Fetch products for selected country
+				fetch(`{{ route('ads-campaigns.products-by-country') }}?country_id=${countryId}`)
+					.then(response => response.json())
+					.then(data => {
+						products = data;
+						updateProductSelect();
+						productSelect.disabled = false;
+					})
+					.catch(error => {
+						console.error('Error fetching products:', error);
+						productSelect.innerHTML = '<option value="">{{ __("Error loading products") }}</option>';
+						productSelect.disabled = true;
+					});
+			} else {
+				products = [];
+				productSelect.innerHTML = '<option value="">{{ __("Please select a country first") }}</option>';
+				productSelect.disabled = true;
+			}
+		}
+
+		// Listen to country selection changes
+		document.getElementById('countrySelect').addEventListener('change', function() {
+			loadProductsForCountry(this.value);
+		});
+
+		// Load products on page load if country is pre-selected (from old input)
+		document.addEventListener('DOMContentLoaded', function() {
+			const countrySelect = document.getElementById('countrySelect');
+			if (countrySelect.value) {
+				loadProductsForCountry(countrySelect.value);
+			}
+		});
+
+		function updateProductSelect() {
+			const productSelect = document.getElementById('productSelect');
+			productSelect.innerHTML = '<option value="">{{ __("Select a product to add") }}</option>';
+			
+			products.forEach(product => {
+				if (!addedProductIds.has(product.id)) {
+					const option = document.createElement('option');
+					option.value = product.id;
+					option.textContent = product.name;
+					option.setAttribute('data-name', product.name);
+					productSelect.appendChild(option);
+				}
+			});
+		}
 
 		document.getElementById('productSelect').addEventListener('change', function() {
 			const productId = parseInt(this.value);
@@ -96,6 +147,7 @@
 				addProductTag(productId, productName);
 				addedProductIds.add(productId);
 				this.value = ''; // Reset select
+				updateProductSelect(); // Update to remove added product from dropdown
 			}
 		});
 
@@ -133,6 +185,7 @@
 			if (tag) {
 				tag.remove();
 				addedProductIds.delete(productId);
+				updateProductSelect(); // Update to re-add product to dropdown
 				
 				// Show no products message if container is empty
 				const container = document.getElementById('productsContainer');

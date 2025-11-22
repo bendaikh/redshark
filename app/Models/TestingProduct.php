@@ -28,4 +28,12 @@ class TestingProduct extends Model
         }
         return Country::whereIn('id', $this->country_ids)->get();
     }
+
+    /**
+     * Get the media buyers assigned to this testing product.
+     */
+    public function mediaBuyers()
+    {
+        return $this->belongsToMany(User::class, 'media_buyer_testing_product', 'testing_product_id', 'user_id')->withTimestamps();
+    }
 }

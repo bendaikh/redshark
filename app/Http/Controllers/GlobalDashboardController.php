@@ -43,13 +43,18 @@ class GlobalDashboardController extends Controller
 		$totalAdsSpent = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
 		$totalLeads = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.leads') ?? 0;
 
-		$totalExpenses = $totalAdsSpent
-			+ Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-				->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-				->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-				->sum('total_amount');
-		$totalStockValue = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-			->sum(\DB::raw('quantity * cost'));
+	$totalExpenses = $totalAdsSpent
+		+ Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
+			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+			->sum('total_amount');
+	// Calculate stock value using average cost from sourcings
+	$products = Product::with('sourcings')
+		->when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+		->get();
+	$totalStockValue = $products->sum(function ($product) {
+		return $product->quantity * $product->average_cost;
+	});
 
 		// Marketing KPIs
 		$ordersQuery = DB::table('invoice_items')

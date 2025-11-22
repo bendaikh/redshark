@@ -50,7 +50,7 @@ class InvoiceController extends Controller
 	public function create()
 	{
 		$countries = Country::orderBy('name')->get();
-		$products = Product::orderBy('name')->get();
+		$products = Product::with('sourcings')->orderBy('name')->get();
 		$deliveryFees = DeliveryFee::where('active', true)->orderBy('name')->get();
 		return view('invoices.create', compact('countries', 'products', 'deliveryFees'));
 	}
@@ -79,41 +79,41 @@ class InvoiceController extends Controller
 		$data['currency'] = 'USD';
 		$data['date'] = now()->toDateString();
 
-		DB::transaction(function () use ($data, $request) {
-			$invoice = Invoice::create($data);
+	DB::transaction(function () use ($data, $request) {
+		$invoice = Invoice::create($data);
 
-			foreach ($request->input('products', []) as $productData) {
-				$product = Product::find($productData['id']);
-				$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
-				
-				$revenue = $productData['revenue'] ?? 0;
-				$productCost = $product->cost ?? 0;
-				$totalOrders = $productData['total_orders'] ?? 0;
-				$quantitySold = $productData['quantity_sold'] ?? 0;
-				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
-				
-				// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
-				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
-				$totalProductCost = $quantitySold * $productCost;
-				$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
+		foreach ($request->input('products', []) as $productData) {
+			$product = Product::with('sourcings')->find($productData['id']);
+			$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
+			
+			$revenue = $productData['revenue'] ?? 0;
+			$productCost = $product->average_cost ?? 0;
+			$totalOrders = $productData['total_orders'] ?? 0;
+			$quantitySold = $productData['quantity_sold'] ?? 0;
+			$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
+			
+			// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
+			$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
+			$totalProductCost = $quantitySold * $productCost;
+			$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
 
-				InvoiceItem::create([
-					'invoice_id' => $invoice->id,
-					'product_id' => $productData['id'],
-					'quantity' => $productData['quantity_sold'] ?? 0,
-					'unit_cost' => $product->cost ?? 0,
-					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
-					'revenue' => $revenue,
-					'total_orders' => $productData['total_orders'] ?? 0,
-					'quantity_sold' => $productData['quantity_sold'] ?? 0,
-					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
-					'ads_cost' => 0,
-					'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
-				]);
-			}
-		});
+			InvoiceItem::create([
+				'invoice_id' => $invoice->id,
+				'product_id' => $productData['id'],
+				'quantity' => $productData['quantity_sold'] ?? 0,
+				'unit_cost' => $product->average_cost ?? 0,
+				'total_cost' => ($product->average_cost ?? 0) * ($productData['quantity_sold'] ?? 0),
+				'revenue' => $revenue,
+				'total_orders' => $productData['total_orders'] ?? 0,
+				'quantity_sold' => $productData['quantity_sold'] ?? 0,
+				'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
+				'ads_cost' => 0,
+				'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
+			]);
+		}
+	});
 
-		return redirect()->route('invoices.index')->with('status', 'Invoice created.');
+	return redirect()->route('invoices.index')->with('status', 'Invoice created.');
 	}
 
 	/**
@@ -131,7 +131,7 @@ class InvoiceController extends Controller
 	{
 		$invoice->load('items.product', 'items.deliveryFee');
 		$countries = Country::orderBy('name')->get();
-		$products = Product::orderBy('name')->get();
+		$products = Product::with('sourcings')->orderBy('name')->get();
 		$deliveryFees = DeliveryFee::where('active', true)->orderBy('name')->get();
 		return view('invoices.edit', compact('invoice', 'countries', 'products', 'deliveryFees'));
 	}
@@ -160,45 +160,45 @@ class InvoiceController extends Controller
 		$data['currency'] = $invoice->currency;
 		$data['date'] = $invoice->date;
 
-		DB::transaction(function () use ($invoice, $data, $request) {
-			$invoice->update($data);
+	DB::transaction(function () use ($invoice, $data, $request) {
+		$invoice->update($data);
+		
+		// Delete existing items
+		$invoice->items()->delete();
+
+		// Create new items
+		foreach ($request->input('products', []) as $productData) {
+			$product = Product::with('sourcings')->find($productData['id']);
+			$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
 			
-			// Delete existing items
-			$invoice->items()->delete();
+			$revenue = $productData['revenue'] ?? 0;
+			$productCost = $product->average_cost ?? 0;
+			$totalOrders = $productData['total_orders'] ?? 0;
+			$quantitySold = $productData['quantity_sold'] ?? 0;
+			$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
+			
+			// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
+			$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
+			$totalProductCost = $quantitySold * $productCost;
+			$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
 
-			// Create new items
-			foreach ($request->input('products', []) as $productData) {
-				$product = Product::find($productData['id']);
-				$deliveryFee = $productData['delivery_fee_id'] ? DeliveryFee::find($productData['delivery_fee_id']) : null;
-				
-				$revenue = $productData['revenue'] ?? 0;
-				$productCost = $product->cost ?? 0;
-				$totalOrders = $productData['total_orders'] ?? 0;
-				$quantitySold = $productData['quantity_sold'] ?? 0;
-				$deliveryFeePerUnit = $deliveryFee ? $deliveryFee->fee_per_unit : 0;
-				
-				// Calculate Total Amount: Revenue - (Total Orders × Delivery Fees) - (Quantity Sold × Cost)
-				$totalDeliveryFee = $totalOrders * $deliveryFeePerUnit;
-				$totalProductCost = $quantitySold * $productCost;
-				$totalAmount = $revenue - $totalDeliveryFee - $totalProductCost;
+			InvoiceItem::create([
+				'invoice_id' => $invoice->id,
+				'product_id' => $productData['id'],
+				'quantity' => $productData['quantity_sold'] ?? 0,
+				'unit_cost' => $product->average_cost ?? 0,
+				'total_cost' => ($product->average_cost ?? 0) * ($productData['quantity_sold'] ?? 0),
+				'revenue' => $revenue,
+				'total_orders' => $productData['total_orders'] ?? 0,
+				'quantity_sold' => $productData['quantity_sold'] ?? 0,
+				'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
+				'ads_cost' => 0,
+				'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
+			]);
+		}
+	});
 
-				InvoiceItem::create([
-					'invoice_id' => $invoice->id,
-					'product_id' => $productData['id'],
-					'quantity' => $productData['quantity_sold'] ?? 0,
-					'unit_cost' => $product->cost ?? 0,
-					'total_cost' => ($product->cost ?? 0) * ($productData['quantity_sold'] ?? 0),
-					'revenue' => $revenue,
-					'total_orders' => $productData['total_orders'] ?? 0,
-					'quantity_sold' => $productData['quantity_sold'] ?? 0,
-					'delivery_fee_id' => $productData['delivery_fee_id'] ?? null,
-					'ads_cost' => 0,
-					'net_profit' => $totalAmount, // Store Total Amount in net_profit field for backward compatibility
-				]);
-			}
-		});
-
-		return redirect()->route('invoices.index')->with('status', 'Invoice updated.');
+	return redirect()->route('invoices.index')->with('status', 'Invoice updated.');
 	}
 
 	/**

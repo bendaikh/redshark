@@ -34,12 +34,12 @@
 					<!-- Product Selection -->
 					<div class="border-t border-gray-200 dark:border-gray-700 pt-4">
 						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{{ __('Select Products') }}</label>
-						<select id="productSelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
-							<option value="">{{ __('Select a product to add') }}</option>
-							@foreach($products as $product)
-								<option value="{{ $product->id }}" data-name="{{ $product->name }}" data-cost="{{ $product->cost }}">{{ $product->name }}</option>
-							@endforeach
-						</select>
+					<select id="productSelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
+						<option value="">{{ __('Select a product to add') }}</option>
+						@foreach($products as $product)
+							<option value="{{ $product->id }}" data-name="{{ $product->name }}" data-cost="{{ $product->average_cost }}">{{ $product->name }}</option>
+						@endforeach
+					</select>
 						@error('products')
 							<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
 						@enderror

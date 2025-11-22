@@ -133,5 +133,25 @@ class Product extends Model
 		$totalAdsCost = $this->getTotalAdsCostAttribute();
 		return $totalAmount - $totalAdsCost;
 	}
+
+	/**
+	 * Calculate average cost total from all sourcings (including restocks)
+	 */
+	public function getAverageCostAttribute()
+	{
+		$sourcings = $this->sourcings;
+		
+		if ($sourcings->count() == 0) {
+			return $this->cost ?? 0; // Fallback to product's cost field if no sourcings
+		}
+
+		// Calculate average of all sourcing cost totals
+		$totalCost = 0;
+		foreach ($sourcings as $sourcing) {
+			$totalCost += $sourcing->cost_total;
+		}
+
+		return $totalCost / $sourcings->count();
+	}
 }
 

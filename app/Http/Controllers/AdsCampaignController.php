@@ -39,8 +39,19 @@ class AdsCampaignController extends Controller
 	{
 		$countries = Country::orderBy('name')->get();
 		$platforms = AdsPlatform::where('is_active', true)->orderBy('name')->get();
-		$products = Product::orderBy('name')->get();
-		return view('ads.create', compact('countries', 'platforms', 'products'));
+		return view('ads.create', compact('countries', 'platforms'));
+	}
+
+	/**
+	 * Get products by country
+	 */
+	public function getProductsByCountry(Request $request)
+	{
+		$countryId = $request->input('country_id');
+		$products = Product::where('country_id', $countryId)
+			->orderBy('name')
+			->get(['id', 'name']);
+		return response()->json($products);
 	}
 
 	/**
@@ -96,7 +107,10 @@ class AdsCampaignController extends Controller
 		$adsCampaign->load('products');
 		$countries = Country::orderBy('name')->get();
 		$platforms = AdsPlatform::where('is_active', true)->orderBy('name')->get();
-		$products = Product::orderBy('name')->get();
+		// Load products for the campaign's country
+		$products = Product::where('country_id', $adsCampaign->country_id)
+			->orderBy('name')
+			->get();
 		return view('ads.edit', compact('adsCampaign', 'countries', 'platforms', 'products'));
 	}
 

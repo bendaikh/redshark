@@ -19,6 +19,8 @@ use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TestingProductController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\MediaBuyerController;
 
 Route::get('/', function () {
 	// Redirect guests to login
@@ -31,11 +33,24 @@ Route::get('/', function () {
 		return redirect()->route('admin.dashboard');
 	}
 
+	// Redirect media buyers to their testing dashboard
+	if (auth()->user()->hasRole('media_buyer')) {
+		return redirect()->route('media-buyer.testing');
+	}
+
 	// Redirect regular users to dashboard
 	return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', function() {
+	// Redirect media buyers to their testing dashboard
+	if (auth()->user()->hasRole('media_buyer')) {
+		return redirect()->route('media-buyer.testing');
+	}
+	
+	// Regular users see dashboard
+	return app(DashboardController::class)->index();
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 // Serve storage files (workaround for Windows symlink issues)
 Route::get('/storage/{path}', function ($path) {
@@ -74,10 +89,12 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('categories', CategoryController::class);
 		Route::resource('suppliers', SupplierController::class);
 		Route::resource('invoices', InvoiceController::class);
+		Route::get('ads-campaigns/products-by-country', [AdsCampaignController::class, 'getProductsByCountry'])->name('ads-campaigns.products-by-country');
 		Route::resource('ads-campaigns', AdsCampaignController::class);
 		Route::resource('ads-platforms', AdsPlatformController::class);
 		Route::resource('sourcings', SourcingController::class);
 		Route::post('sourcings/{sourcing}/validate', [SourcingController::class, 'validateSourcing'])->name('sourcings.validate');
+		Route::post('sourcings/{sourcing}/revoke', [SourcingController::class, 'revokeSourcing'])->name('sourcings.revoke');
 		Route::resource('shipping-methods', ShippingMethodController::class);
 		
 		// Accounting resources
@@ -87,6 +104,18 @@ Route::middleware(['auth', 'role:superadmin'])
 		
 		// Testing Products
 		Route::resource('testing-products', TestingProductController::class);
+		Route::get('testing-products/{testingProduct}/assign-media-buyers', [TestingProductController::class, 'assignMediaBuyers'])->name('testing-products.assign-media-buyers');
+		Route::put('testing-products/{testingProduct}/assign-media-buyers', [TestingProductController::class, 'updateMediaBuyers'])->name('testing-products.update-media-buyers');
+		
+		// Users Management
+		Route::resource('users', UserController::class);
+	});
+
+// Media Buyer area
+Route::middleware(['auth', 'role:media_buyer'])
+	->prefix('media-buyer')
+	->group(function () {
+		Route::get('/testing', [MediaBuyerController::class, 'testing'])->name('media-buyer.testing');
 	});
 
 require __DIR__.'/auth.php';

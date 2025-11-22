@@ -75,5 +75,18 @@ class Sourcing extends Model
 
 		return ($priceTotal + $additionalFees + $testingFees + $shippingCost) / $quantity;
 	}
+
+	/**
+	 * Calculate Final Price Total: Price Total + Additional Fees + Testing Fees + Shipping Cost
+	 */
+	public function getFinalPriceTotalAttribute()
+	{
+		$priceTotal = $this->cost ?? 0; // Price Total (unit price * quantity)
+		$additionalFees = $this->additional_fees ?? 0;
+		$testingFees = $this->testing_fees ?? 0;
+		$shippingCost = $this->shipping_cost ?? 0;
+
+		return $priceTotal + $additionalFees + $testingFees + $shippingCost;
+	}
 }
 

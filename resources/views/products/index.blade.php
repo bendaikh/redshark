@@ -69,12 +69,12 @@
 											<img src="{{ \Illuminate\Support\Facades\Storage::url($p->image) }}" alt="{{ $p->name }}" class="h-10 w-10 object-cover rounded">
 										@endif
 									</td>
-									<td class="py-2 px-2">{{ $p->name }}</td>
-									<td class="py-2 px-2">{{ $p->category?->name }}</td>
-									<td class="py-2 px-2">{{ $p->quantity }}</td>
-									<td class="py-2 px-2">{{ $p->remaining_qty }}</td>
-									<td class="py-2 px-2">{{ number_format($p->cost, 2) }}</td>
-									<td class="py-2 px-2">{{ $p->country?->name }}</td>
+								<td class="py-2 px-2">{{ $p->name }}</td>
+								<td class="py-2 px-2">{{ $p->category?->name }}</td>
+								<td class="py-2 px-2">{{ $p->quantity }}</td>
+								<td class="py-2 px-2">{{ $p->remaining_qty }}</td>
+								<td class="py-2 px-2">{{ number_format($p->average_cost, 2) }}</td>
+								<td class="py-2 px-2">{{ $p->country?->name }}</td>
 									<td class="py-2 px-2">{{ number_format($deliveryRate, 2) }}%</td>
 									<td class="py-2 px-2">{{ number_format($p->total_ads_cost, 2) }}</td>
 									<td class="py-2 px-2">{{ number_format($p->cost_per_lead, 2) }}</td>

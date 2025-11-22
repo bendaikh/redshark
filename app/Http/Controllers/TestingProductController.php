@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TestingProduct;
 use App\Models\Country;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class TestingProductController extends Controller
@@ -97,5 +98,31 @@ class TestingProductController extends Controller
         $testingProduct->delete();
         
         return redirect()->route('testing-products.index')->with('status', 'Testing product deleted successfully.');
+    }
+
+    /**
+     * Show the form for assigning media buyers to a testing product.
+     */
+    public function assignMediaBuyers(TestingProduct $testingProduct)
+    {
+        $mediaBuyers = User::role('media_buyer')->orderBy('name')->get();
+        $assignedMediaBuyers = $testingProduct->mediaBuyers->pluck('id')->toArray();
+        
+        return view('testing-products.assign-media-buyers', compact('testingProduct', 'mediaBuyers', 'assignedMediaBuyers'));
+    }
+
+    /**
+     * Update the media buyers assigned to a testing product.
+     */
+    public function updateMediaBuyers(Request $request, TestingProduct $testingProduct)
+    {
+        $request->validate([
+            'media_buyers' => 'nullable|array',
+            'media_buyers.*' => 'exists:users,id',
+        ]);
+
+        $testingProduct->mediaBuyers()->sync($request->input('media_buyers', []));
+        
+        return redirect()->route('testing-products.index')->with('status', 'Media buyers assigned successfully.');
     }
 }

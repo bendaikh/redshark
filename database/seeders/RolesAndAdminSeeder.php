@@ -20,6 +20,7 @@ class RolesAndAdminSeeder extends Seeder
         // Create roles
         $superAdminRole = Role::firstOrCreate(['name' => 'superadmin']);
         $countryAdminRole = Role::firstOrCreate(['name' => 'country_admin']);
+        $mediaBuyerRole = Role::firstOrCreate(['name' => 'media_buyer']);
         $userRole = Role::firstOrCreate(['name' => 'user']);
 
         // Optionally define permissions per domain area
@@ -30,6 +31,8 @@ class RolesAndAdminSeeder extends Seeder
             'manage invoices',
             'manage products',
             'view reports',
+            'manage users',
+            'view testing',
         ];
 
         foreach ($permissions as $perm) {
@@ -42,6 +45,10 @@ class RolesAndAdminSeeder extends Seeder
             'manage invoices',
             'manage products',
             'view reports',
+        ]);
+        
+        $mediaBuyerRole->givePermissionTo([
+            'view testing',
         ]);
 
         // Create a default country to start with

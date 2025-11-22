@@ -236,12 +236,52 @@ class SourcingController extends Controller
 				'low_stock_threshold' => 5, // Default value
 			];
 
-			Product::create($productData);
+			$product = Product::create($productData);
 
-			// Mark sourcing as validated
-			$sourcing->update(['validated' => true]);
+			// Link sourcing to the newly created product and mark as validated
+			$sourcing->update([
+				'validated' => true,
+				'product_id' => $product->id
+			]);
 
 			return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product created successfully.');
+		}
+	}
+
+	/**
+	 * Revoke a validated sourcing (undo validation).
+	 */
+	public function revokeSourcing(Sourcing $sourcing)
+	{
+		// Check if not validated
+		if (!$sourcing->validated) {
+			return redirect()->route('sourcings.index')->with('status', 'This sourcing is not validated yet.');
+		}
+
+		if ($sourcing->is_restock && $sourcing->product_id) {
+			// Undo restock: subtract the quantity from the product
+			$product = Product::find($sourcing->product_id);
+			if (!$product) {
+				return redirect()->route('sourcings.index')->with('error', 'Product not found for revoking restock.');
+			}
+
+			// Subtract the quantity (ensure it doesn't go below 0)
+			$newQuantity = max(0, $product->quantity - $sourcing->quantity);
+			$product->quantity = $newQuantity;
+			$product->save();
+
+			// Mark sourcing as not validated
+			$sourcing->update(['validated' => false]);
+
+			return redirect()->route('sourcings.index')->with('status', 'Sourcing revoked and product quantity adjusted successfully.');
+		} else {
+			// For new products created from sourcing:
+			// We can't easily identify which product was created from this sourcing since we don't store that relationship
+			// So we'll just mark the sourcing as not validated
+			// Admin should manually handle the product if needed
+			$sourcing->update(['validated' => false]);
+
+			return redirect()->route('sourcings.index')->with('status', 'Sourcing revoked. Note: If a product was created from this sourcing, please manage it manually from the Products page.');
 		}
 	}
 
