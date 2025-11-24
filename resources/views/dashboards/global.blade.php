@@ -131,7 +131,41 @@
 
 		<!-- Marketing Performance Section -->
 		<div class="mb-6">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Marketing Performance') }}</h3>
+			<div class="flex items-center justify-between mb-4">
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
+				<form method="GET" class="flex items-center gap-2">
+					<!-- Preserve existing filters -->
+					@if($from)
+						<input type="hidden" name="from" value="{{ $from }}">
+					@endif
+					@if($to)
+						<input type="hidden" name="to" value="{{ $to }}">
+					@endif
+					
+					<div class="flex items-center gap-2">
+						<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('Filter by Product:') }}</label>
+						<select name="product_id" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
+							<option value="">{{ __('All Products') }}</option>
+							@foreach($allProducts as $product)
+								<option value="{{ $product->id }}" {{ $productId == $product->id ? 'selected' : '' }}>
+									{{ $product->name }}
+								</option>
+							@endforeach
+						</select>
+					</div>
+				</form>
+			</div>
+			@if($selectedProduct)
+				<div class="mb-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 rounded">
+					<p class="text-sm text-indigo-800 dark:text-indigo-300">
+						<span class="font-semibold">{{ __('Filtered by Product:') }}</span> {{ $selectedProduct->name }}
+						<a href="{{ route('admin.dashboard', array_merge(request()->only(['from', 'to']))) }}" class="ml-2 text-indigo-600 dark:text-indigo-400 hover:underline">
+							{{ __('Clear Filter') }}
+						</a>
+					</p>
+				</div>
+			@endif
+			
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-indigo-500">
 					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Leads') }}</p>

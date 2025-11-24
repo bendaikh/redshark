@@ -19,6 +19,7 @@ class GlobalDashboardController extends Controller
 		$countryId = (int) $request->session()->get('current_country_id');
 		$from = $request->input('from');
 		$to = $request->input('to');
+		$productId = $request->input('product_id');
 		$isGlobal = $countryId === 0;
 
 		// If not global, show only selected country
@@ -30,7 +31,8 @@ class GlobalDashboardController extends Controller
 		// Calculate ads and marketing stats from pivot table (clone query for reuse)
 		$adsStatsBaseQuery = DB::table('ads_campaign_product')
 			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
-			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId));
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
+			->when($productId, fn($q) => $q->where('ads_campaign_product.product_id', $productId));
 		
 		// Apply date filters if provided
 		if ($from) {
@@ -61,7 +63,8 @@ class GlobalDashboardController extends Controller
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
 			->when($from, fn($q) => $q->whereDate('invoices.date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to));
+			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to))
+			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId));
 
 		$totalOrders = (clone $ordersQuery)->sum('invoice_items.total_orders') ?? 0;
 
@@ -75,6 +78,9 @@ class GlobalDashboardController extends Controller
 			->groupBy('ads_platforms.name')
 			->orderByDesc('total_spend')
 			->get();
+		
+		// Get selected product name if filtering by product
+		$selectedProduct = $productId ? Product::find($productId) : null;
 
 		// Calculate total profits (sum of all products' net_profit)
 		$products = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->get();
@@ -311,6 +317,11 @@ class GlobalDashboardController extends Controller
 				return $country;
 			});
 
+		// Get all products for the filter dropdown
+		$allProducts = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->orderBy('name')
+			->get(['id', 'name']);
+
 		return view('dashboards.global', [
 			'totalCountries' => $totalCountries,
 			'totalInvoices' => $totalInvoices,
@@ -340,6 +351,9 @@ class GlobalDashboardController extends Controller
 			'chartRevenues' => $chartRevenues,
 			'from' => $from,
 			'to' => $to,
+			'allProducts' => $allProducts,
+			'productId' => $productId,
+			'selectedProduct' => $selectedProduct,
 		]);
 	}
 }
