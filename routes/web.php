@@ -94,7 +94,6 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('ads-platforms', AdsPlatformController::class);
 		Route::resource('sourcings', SourcingController::class);
 		Route::post('sourcings/{sourcing}/validate', [SourcingController::class, 'validateSourcing'])->name('sourcings.validate');
-		Route::post('sourcings/{sourcing}/revoke', [SourcingController::class, 'revokeSourcing'])->name('sourcings.revoke');
 		Route::resource('shipping-methods', ShippingMethodController::class);
 		
 		// Accounting resources

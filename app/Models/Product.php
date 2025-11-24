@@ -54,10 +54,22 @@ class Product extends Model
 			->withTimestamps();
 	}
 
+	/**
+	 * Calculate the true initial quantity from all validated sourcings
+	 */
+	public function getInitialQtyAttribute()
+	{
+		// Sum all quantities from validated sourcings
+		$totalFromSourcings = $this->sourcings()->where('validated', true)->sum('quantity');
+		
+		// If there are validated sourcings, use that total; otherwise fall back to the product's quantity field
+		return $totalFromSourcings > 0 ? $totalFromSourcings : $this->quantity;
+	}
+
 	public function getRemainingQtyAttribute()
 	{
 		$quantitySold = $this->invoiceItems()->sum('quantity_sold');
-		return max(0, $this->quantity - ($quantitySold ?? 0));
+		return max(0, $this->initial_qty - ($quantitySold ?? 0));
 	}
 
 	public function getTotalAdsCostAttribute()
@@ -136,6 +148,7 @@ class Product extends Model
 
 	/**
 	 * Calculate average cost total from all sourcings (including restocks)
+	 * Formula: Total Final Price Total / Total Quantity
 	 */
 	public function getAverageCostAttribute()
 	{
@@ -145,13 +158,31 @@ class Product extends Model
 			return $this->cost ?? 0; // Fallback to product's cost field if no sourcings
 		}
 
-		// Calculate average of all sourcing cost totals
-		$totalCost = 0;
+		// Sum up all quantities and final price totals from sourcings
+		$totalQuantity = 0;
+		$totalFinalPriceTotal = 0;
+		
 		foreach ($sourcings as $sourcing) {
-			$totalCost += $sourcing->cost_total;
+			$totalQuantity += $sourcing->quantity ?? 0;
+			$totalFinalPriceTotal += $sourcing->final_price_total;
 		}
 
-		return $totalCost / $sourcings->count();
+		// Avoid division by zero
+		if ($totalQuantity == 0) {
+			return 0;
+		}
+
+		return $totalFinalPriceTotal / $totalQuantity;
+	}
+
+	/**
+	 * Recalculate and sync the product's quantity field from all validated sourcings
+	 */
+	public function syncQuantityFromSourcings()
+	{
+		$totalQuantity = $this->sourcings()->where('validated', true)->sum('quantity');
+		$this->quantity = $totalQuantity;
+		$this->save();
 	}
 }
 

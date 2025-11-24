@@ -71,7 +71,7 @@
 									</td>
 								<td class="py-2 px-2">{{ $p->name }}</td>
 								<td class="py-2 px-2">{{ $p->category?->name }}</td>
-								<td class="py-2 px-2">{{ $p->quantity }}</td>
+								<td class="py-2 px-2">{{ $p->initial_qty }}</td>
 								<td class="py-2 px-2">{{ $p->remaining_qty }}</td>
 								<td class="py-2 px-2">{{ number_format($p->average_cost, 2) }}</td>
 								<td class="py-2 px-2">{{ $p->country?->name }}</td>

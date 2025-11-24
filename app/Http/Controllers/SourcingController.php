@@ -159,6 +159,10 @@ class SourcingController extends Controller
 
 		$data = $request->validate($rules);
 		
+		// Store old quantity before updating to calculate the difference
+		$oldQuantity = $sourcing->quantity;
+		$newQuantity = $data['quantity'];
+		
 		// If restocking, get product data
 		if ($isRestock && isset($data['product_id'])) {
 			$product = Product::find($data['product_id']);
@@ -188,7 +192,17 @@ class SourcingController extends Controller
 		$data['is_restock'] = $isRestock;
 
 		$sourcing->update($data);
-		return redirect()->route('sourcings.index')->with('status', 'Sourcing updated.');
+
+		// If the sourcing is already validated and has a product, recalculate the product quantity from all sourcings
+		if ($sourcing->validated && $sourcing->product_id) {
+			$product = Product::find($sourcing->product_id);
+			if ($product) {
+				// Recalculate total quantity from all validated sourcings
+				$product->syncQuantityFromSourcings();
+			}
+		}
+
+		return redirect()->route('sourcings.index')->with('status', 'Sourcing updated. Product quantity has been synchronized.');
 	}
 
 	/**
@@ -216,12 +230,11 @@ class SourcingController extends Controller
 				return redirect()->route('sourcings.index')->with('error', 'Product not found for restocking.');
 			}
 
-			// Update product quantity (add the new quantity)
-			$product->quantity += $sourcing->quantity;
-			$product->save();
-
 			// Mark sourcing as validated
 			$sourcing->update(['validated' => true]);
+
+			// Recalculate total quantity from all validated sourcings
+			$product->syncQuantityFromSourcings();
 
 			return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product restocked successfully.');
 		} else {
@@ -245,43 +258,6 @@ class SourcingController extends Controller
 			]);
 
 			return redirect()->route('sourcings.index')->with('status', 'Sourcing validated and product created successfully.');
-		}
-	}
-
-	/**
-	 * Revoke a validated sourcing (undo validation).
-	 */
-	public function revokeSourcing(Sourcing $sourcing)
-	{
-		// Check if not validated
-		if (!$sourcing->validated) {
-			return redirect()->route('sourcings.index')->with('status', 'This sourcing is not validated yet.');
-		}
-
-		if ($sourcing->is_restock && $sourcing->product_id) {
-			// Undo restock: subtract the quantity from the product
-			$product = Product::find($sourcing->product_id);
-			if (!$product) {
-				return redirect()->route('sourcings.index')->with('error', 'Product not found for revoking restock.');
-			}
-
-			// Subtract the quantity (ensure it doesn't go below 0)
-			$newQuantity = max(0, $product->quantity - $sourcing->quantity);
-			$product->quantity = $newQuantity;
-			$product->save();
-
-			// Mark sourcing as not validated
-			$sourcing->update(['validated' => false]);
-
-			return redirect()->route('sourcings.index')->with('status', 'Sourcing revoked and product quantity adjusted successfully.');
-		} else {
-			// For new products created from sourcing:
-			// We can't easily identify which product was created from this sourcing since we don't store that relationship
-			// So we'll just mark the sourcing as not validated
-			// Admin should manually handle the product if needed
-			$sourcing->update(['validated' => false]);
-
-			return redirect()->route('sourcings.index')->with('status', 'Sourcing revoked. Note: If a product was created from this sourcing, please manage it manually from the Products page.');
 		}
 	}
 

@@ -80,15 +80,6 @@
 														</svg>
 													</button>
 												</form>
-											@else
-												<form action="{{ route('sourcings.revoke', $sourcing) }}" method="POST" class="inline">
-													@csrf
-													<button type="submit" class="p-1.5 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded transition-colors" title="{{ __('Revoke') }}" onclick="return confirm('{{ __('Revoke this sourcing validation?') }}')">
-														<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-															<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
-														</svg>
-													</button>
-												</form>
 											@endif
 											<a href="{{ route('sourcings.edit', $sourcing) }}" class="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded transition-colors" title="{{ __('Edit') }}">
 												<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
