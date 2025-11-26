@@ -15,20 +15,28 @@
 				</div>
 			@endif
 
-			<!-- Search Form -->
+			<!-- Search and Filter Form -->
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 mb-4">
-				<form method="GET" action="{{ route('media-buyer.testing') }}" class="flex gap-2">
+				<form method="GET" action="{{ route('media-buyer.testing') }}" class="flex flex-wrap gap-2">
 					<input 
 						type="text" 
 						name="q" 
 						value="{{ request('q') }}" 
 						placeholder="Search by product name..." 
-						class="flex-1 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
+						class="flex-1 min-w-64 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600"
 					>
+					<select name="status" class="rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 dark:focus:border-indigo-600">
+						<option value="">{{ __('All Statuses') }}</option>
+						<option value="to_do" {{ request('status') == 'to_do' ? 'selected' : '' }}>{{ __('To Do') }}</option>
+						<option value="in_progress" {{ request('status') == 'in_progress' ? 'selected' : '' }}>{{ __('In Progress') }}</option>
+						<option value="done" {{ request('status') == 'done' ? 'selected' : '' }}>{{ __('Done') }}</option>
+						<option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>{{ __('Approved') }}</option>
+						<option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>{{ __('Rejected') }}</option>
+					</select>
 					<button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">
-						{{ __('Search') }}
+						{{ __('Filter') }}
 					</button>
-					@if(request('q'))
+					@if(request('q') || request('status'))
 						<a href="{{ route('media-buyer.testing') }}" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
 							{{ __('Clear') }}
 						</a>
@@ -49,9 +57,31 @@
 					@foreach($testingProducts as $testingProduct)
 						<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
 							<div class="p-6">
-								<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
-									{{ $testingProduct->product_name }}
-								</h3>
+								<div class="flex items-start justify-between mb-3">
+									<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex-1">
+										{{ $testingProduct->product_name }}
+									</h3>
+									@php
+										$status = $testingProduct->pivot->status ?? 'to_do';
+										$statusColors = [
+											'to_do' => 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+											'in_progress' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+											'done' => 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+											'approved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+											'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+										];
+										$statusLabels = [
+											'to_do' => __('To Do'),
+											'in_progress' => __('In Progress'),
+											'done' => __('Done'),
+											'approved' => __('Approved'),
+											'rejected' => __('Rejected'),
+										];
+									@endphp
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$status] }}">
+										{{ $statusLabels[$status] }}
+									</span>
+								</div>
 								
 								<div class="space-y-3">
 									<!-- Product Link -->
@@ -114,9 +144,62 @@
 									@endif
 								</div>
 
+								<!-- Results Display (if submitted) -->
+								@if($testingProduct->pivot->leads || $testingProduct->pivot->ads_spend)
+									<div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+										<p class="text-xs font-medium text-blue-900 dark:text-blue-100 mb-2">{{ __('Results') }}</p>
+										<div class="grid grid-cols-2 gap-2 text-sm">
+											<div>
+												<span class="text-blue-600 dark:text-blue-400">{{ __('Leads:') }}</span>
+												<span class="font-semibold text-blue-900 dark:text-blue-100">{{ number_format($testingProduct->pivot->leads ?? 0) }}</span>
+											</div>
+											<div>
+												<span class="text-blue-600 dark:text-blue-400">{{ __('Spent:') }}</span>
+												<span class="font-semibold text-blue-900 dark:text-blue-100">{{ number_format($testingProduct->pivot->ads_spend ?? 0, 2) }}</span>
+											</div>
+										</div>
+									</div>
+								@endif
+
+								<!-- Action Buttons -->
 								<div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-									<div class="text-xs text-gray-500 dark:text-gray-400">
-										{{ __('Added') }} {{ $testingProduct->created_at->diffForHumans() }}
+									<div class="flex items-center justify-between mb-2">
+										<div class="text-xs text-gray-500 dark:text-gray-400">
+											{{ __('Added') }} {{ $testingProduct->created_at->diffForHumans() }}
+										</div>
+									</div>
+									
+									@php
+										$status = $testingProduct->pivot->status ?? 'to_do';
+									@endphp
+									
+									<div class="flex gap-2 mt-3">
+										@if($status == 'to_do')
+											<form action="{{ route('media-buyer.testing.update-status', $testingProduct) }}" method="POST" class="flex-1">
+												@csrf
+												@method('PATCH')
+												<input type="hidden" name="status" value="in_progress">
+												<button type="submit" class="w-full px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition">
+													{{ __('Start Working') }}
+												</button>
+											</form>
+										@elseif($status == 'in_progress')
+											<a href="{{ route('media-buyer.testing.submit-results', $testingProduct) }}" class="flex-1 px-3 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition text-center">
+												{{ __('Submit Results') }}
+											</a>
+										@elseif($status == 'done')
+											<div class="flex-1 px-3 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-sm rounded-md text-center border border-yellow-300 dark:border-yellow-700">
+												{{ __('Awaiting Approval') }}
+											</div>
+										@elseif($status == 'approved')
+											<div class="flex-1 px-3 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-sm rounded-md text-center border border-green-300 dark:border-green-700">
+												✓ {{ __('Approved') }}
+											</div>
+										@elseif($status == 'rejected')
+											<a href="{{ route('media-buyer.testing.submit-results', $testingProduct) }}" class="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition text-center">
+												{{ __('Resubmit') }}
+											</a>
+										@endif
 									</div>
 								</div>
 							</div>

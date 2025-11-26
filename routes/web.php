@@ -108,6 +108,9 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('testing-products', TestingProductController::class);
 		Route::get('testing-products/{testingProduct}/assign-media-buyers', [TestingProductController::class, 'assignMediaBuyers'])->name('testing-products.assign-media-buyers');
 		Route::put('testing-products/{testingProduct}/assign-media-buyers', [TestingProductController::class, 'updateMediaBuyers'])->name('testing-products.update-media-buyers');
+		Route::get('testing-products-results/review', [TestingProductController::class, 'reviewResults'])->name('testing-products.review-results');
+		Route::patch('testing-products/{testing_product}/approve/{user}', [TestingProductController::class, 'approveResult'])->name('testing-products.approve');
+		Route::patch('testing-products/{testing_product}/reject/{user}', [TestingProductController::class, 'rejectResult'])->name('testing-products.reject');
 		
 		// Users Management
 		Route::resource('users', UserController::class);
@@ -119,6 +122,9 @@ Route::middleware(['auth', 'role:media_buyer'])
 	->group(function () {
 		Route::get('/dashboard', [MediaBuyerController::class, 'dashboard'])->name('media-buyer.dashboard');
 		Route::get('/testing', [MediaBuyerController::class, 'testing'])->name('media-buyer.testing');
+		Route::patch('/testing/{testing_product}/update-status', [MediaBuyerController::class, 'updateTestingStatus'])->name('media-buyer.testing.update-status');
+		Route::get('/testing/{testing_product}/submit-results', [MediaBuyerController::class, 'showSubmitResults'])->name('media-buyer.testing.submit-results');
+		Route::post('/testing/{testing_product}/submit-results', [MediaBuyerController::class, 'submitResults'])->name('media-buyer.testing.store-results');
 		Route::get('/products', [MediaBuyerController::class, 'products'])->name('media-buyer.products');
 		
 		// Expenses

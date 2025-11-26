@@ -8,6 +8,7 @@ use App\Models\AdsCampaign;
 use App\Models\AdsPlatform;
 use App\Models\Country;
 use App\Models\Product;
+use App\Models\TestingProduct;
 use Illuminate\Http\Request;
 
 class MediaBuyerController extends Controller
@@ -112,9 +113,82 @@ class MediaBuyerController extends Controller
             $query->where('product_name', 'like', "%{$search}%");
         }
         
+        // Filter by status
+        if ($status = $request->input('status')) {
+            $query->wherePivot('status', $status);
+        }
+        
         $testingProducts = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
         
         return view('media-buyer.testing', compact('testingProducts'));
+    }
+
+    /**
+     * Update testing product status.
+     */
+    public function updateTestingStatus(Request $request, $testing_product)
+    {
+        $user = auth()->user();
+        $testingProduct = TestingProduct::findOrFail($testing_product);
+        
+        // Verify this product is assigned to this media buyer
+        if (!$user->testingProducts()->where('testing_products.id', $testingProduct->id)->exists()) {
+            abort(403);
+        }
+        
+        $request->validate([
+            'status' => 'required|in:in_progress,done',
+        ]);
+        
+        $user->testingProducts()->updateExistingPivot($testingProduct->id, [
+            'status' => $request->status,
+        ]);
+        
+        return redirect()->route('media-buyer.testing')->with('status', 'Status updated successfully.');
+    }
+
+    /**
+     * Show form to submit testing results.
+     */
+    public function showSubmitResults($testing_product)
+    {
+        $user = auth()->user();
+        $testingProduct = TestingProduct::findOrFail($testing_product);
+        
+        // Verify this product is assigned to this media buyer
+        $pivot = $user->testingProducts()->where('testing_products.id', $testingProduct->id)->first();
+        if (!$pivot) {
+            abort(403);
+        }
+        
+        return view('media-buyer.testing-submit-results', compact('testingProduct', 'pivot'));
+    }
+
+    /**
+     * Submit testing results.
+     */
+    public function submitResults(Request $request, $testing_product)
+    {
+        $user = auth()->user();
+        $testingProduct = TestingProduct::findOrFail($testing_product);
+        
+        // Verify this product is assigned to this media buyer
+        if (!$user->testingProducts()->where('testing_products.id', $testingProduct->id)->exists()) {
+            abort(403);
+        }
+        
+        $request->validate([
+            'leads' => 'required|integer|min:0',
+            'ads_spend' => 'required|numeric|min:0',
+        ]);
+        
+        $user->testingProducts()->updateExistingPivot($testingProduct->id, [
+            'status' => 'done',
+            'leads' => $request->leads,
+            'ads_spend' => $request->ads_spend,
+        ]);
+        
+        return redirect()->route('media-buyer.testing')->with('status', 'Results submitted successfully!');
     }
 
     /**

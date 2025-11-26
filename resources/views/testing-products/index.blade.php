@@ -18,6 +18,12 @@
 				</div>
 			@endif
 
+			@if (session('error'))
+				<div class="mb-4 px-4 py-3 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 rounded-md">
+					{{ session('error') }}
+				</div>
+			@endif
+
 			<!-- Search Form -->
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4 mb-4">
 				<form method="GET" action="{{ route('testing-products.index') }}" class="flex gap-2">
@@ -39,123 +45,150 @@
 				</form>
 			</div>
 
-			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
-				<div class="overflow-x-auto">
-					<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-						<thead class="bg-gray-50 dark:bg-gray-900">
-							<tr>
-								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Product Name') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Product Link') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('FB Library') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Video') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Countries') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Created') }}
-								</th>
-								<th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-									{{ __('Actions') }}
-								</th>
-							</tr>
-						</thead>
-						<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-							@forelse($testingProducts as $testingProduct)
-								<tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-											{{ $testingProduct->product_name }}
-										</div>
-									</td>
-									<td class="px-6 py-4 text-center">
-										<a href="{{ $testingProduct->product_link }}" target="_blank" class="inline-flex items-center justify-center p-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-md transition" title="{{ $testingProduct->product_link }}">
-											<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-											</svg>
-										</a>
-									</td>
-									<td class="px-6 py-4 text-center">
+			<div class="space-y-4">
+				@forelse($testingProducts as $testingProduct)
+					<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg overflow-hidden">
+						<!-- Product Header -->
+						<div class="p-4 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+							<div class="flex items-center justify-between">
+								<div class="flex-1">
+									<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $testingProduct->product_name }}</h3>
+									<div class="flex gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+										<span>{{ __('Created') }}: {{ $testingProduct->created_at->format('M d, Y') }}</span>
+										<a href="{{ $testingProduct->product_link }}" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">{{ __('View Product') }}</a>
 										@if($testingProduct->facebook_library_link)
-											<a href="{{ $testingProduct->facebook_library_link }}" target="_blank" class="inline-flex items-center justify-center p-2 text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition" title="{{ $testingProduct->facebook_library_link }}">
-												<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-													<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-												</svg>
-											</a>
-										@else
-											<span class="text-gray-400 dark:text-gray-600">—</span>
+											<a href="{{ $testingProduct->facebook_library_link }}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">{{ __('FB Library') }}</a>
 										@endif
-									</td>
-									<td class="px-6 py-4 text-center">
 										@if($testingProduct->video_url)
-											<a href="{{ $testingProduct->video_url }}" target="_blank" class="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-md transition" title="{{ $testingProduct->video_url }}">
-												<svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-													<path d="M8 5v14l11-7z"/>
-												</svg>
-											</a>
-										@else
-											<span class="text-gray-400 dark:text-gray-600">—</span>
+											<a href="{{ $testingProduct->video_url }}" target="_blank" class="text-red-600 dark:text-red-400 hover:underline">{{ __('Video') }}</a>
 										@endif
-									</td>
-									<td class="px-6 py-4">
-										<div class="flex flex-wrap gap-1">
-											@foreach($testingProduct->countries() as $country)
-												<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
-													{{ $country->name }}
-												</span>
-											@endforeach
-											@if($testingProduct->countries()->isEmpty())
-												<span class="text-sm text-gray-500 dark:text-gray-400">{{ __('N/A') }}</span>
-											@endif
-										</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
-										<div class="text-sm text-gray-500 dark:text-gray-400">
-											{{ $testingProduct->created_at->format('M d, Y') }}
-										</div>
-									</td>
-									<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-										<div class="flex items-center justify-end gap-2">
-											<a href="{{ route('testing-products.assign-media-buyers', $testingProduct) }}" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" title="Assign Media Buyers">
-												{{ __('Assign') }}
-											</a>
-											<a href="{{ route('testing-products.edit', $testingProduct) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">
-												{{ __('Edit') }}
-											</a>
-											<form method="POST" action="{{ route('testing-products.destroy', $testingProduct) }}" onsubmit="return confirm('Are you sure you want to delete this testing product?');" class="inline">
-												@csrf
-												@method('DELETE')
-												<button type="submit" class="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
-													{{ __('Delete') }}
-												</button>
-											</form>
-										</div>
-									</td>
-								</tr>
-							@empty
-								<tr>
-									<td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-										{{ __('No testing products found.') }}
-									</td>
-								</tr>
-							@endforelse
-						</tbody>
-					</table>
-				</div>
+									</div>
+								</div>
+								<div class="flex items-center gap-2">
+									<a href="{{ route('testing-products.assign-media-buyers', $testingProduct) }}" class="px-3 py-1.5 text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md hover:bg-blue-200 dark:hover:bg-blue-900/50 transition">
+										{{ __('Assign') }}
+									</a>
+									<a href="{{ route('testing-products.edit', $testingProduct) }}" class="px-3 py-1.5 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-md hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition">
+										{{ __('Edit') }}
+									</a>
+									<form method="POST" action="{{ route('testing-products.destroy', $testingProduct) }}" onsubmit="return confirm('Are you sure?');" class="inline">
+										@csrf
+										@method('DELETE')
+										<button type="submit" class="px-3 py-1.5 text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-md hover:bg-red-200 dark:hover:bg-red-900/50 transition">
+											{{ __('Delete') }}
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
 
-				@if($testingProducts->hasPages())
-					<div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-						{{ $testingProducts->links() }}
+						<!-- Media Buyers Results -->
+						@if($testingProduct->mediaBuyers->isNotEmpty())
+							<div class="overflow-x-auto">
+								<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+									<thead class="bg-gray-100 dark:bg-gray-800">
+										<tr>
+											<th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Media Buyer') }}</th>
+											<th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Status') }}</th>
+											<th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Leads') }}</th>
+											<th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Ads Spend') }}</th>
+											<th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Cost/Lead') }}</th>
+											<th class="px-4 py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{{ __('Actions') }}</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+										@foreach($testingProduct->mediaBuyers as $mediaBuyer)
+											@php
+												$status = $mediaBuyer->pivot->status ?? 'to_do';
+												$statusColors = [
+													'to_do' => 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+													'in_progress' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+													'done' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+													'approved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+													'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+												];
+												$statusLabels = [
+													'to_do' => __('To Do'),
+													'in_progress' => __('In Progress'),
+													'done' => __('Done'),
+													'approved' => __('Approved'),
+													'rejected' => __('Rejected'),
+												];
+												$leads = $mediaBuyer->pivot->leads ?? 0;
+												$adsSpend = $mediaBuyer->pivot->ads_spend ?? 0;
+												$costPerLead = $leads > 0 ? $adsSpend / $leads : 0;
+											@endphp
+											<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+												<td class="px-4 py-3">
+													<div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ $mediaBuyer->name }}</div>
+													<div class="text-xs text-gray-500 dark:text-gray-400">{{ $mediaBuyer->email }}</div>
+												</td>
+												<td class="px-4 py-3 text-center">
+													<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColors[$status] }}">
+														{{ $statusLabels[$status] }}
+													</span>
+												</td>
+												<td class="px-4 py-3 text-center text-sm text-gray-900 dark:text-gray-100">
+													{{ $leads > 0 ? number_format($leads) : '—' }}
+												</td>
+												<td class="px-4 py-3 text-center text-sm text-gray-900 dark:text-gray-100">
+													{{ $adsSpend > 0 ? number_format($adsSpend, 2) : '—' }}
+												</td>
+												<td class="px-4 py-3 text-center text-sm text-gray-900 dark:text-gray-100">
+													{{ $costPerLead > 0 ? number_format($costPerLead, 2) : '—' }}
+												</td>
+												<td class="px-4 py-3 text-center">
+													@if($status == 'done')
+														<div class="flex items-center justify-center gap-2">
+															<form action="{{ route('testing-products.approve', [$testingProduct, $mediaBuyer]) }}" method="POST" class="inline">
+																@csrf
+																@method('PATCH')
+																<button type="submit" class="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition">
+																	{{ __('Approve') }}
+																</button>
+															</form>
+															<form action="{{ route('testing-products.reject', [$testingProduct, $mediaBuyer]) }}" method="POST" class="inline">
+																@csrf
+																@method('PATCH')
+																<button type="submit" class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition">
+																	{{ __('Reject') }}
+																</button>
+															</form>
+														</div>
+													@elseif($status == 'approved')
+														<span class="text-xs text-green-600 dark:text-green-400 font-medium">✓ {{ __('Approved') }}</span>
+													@elseif($status == 'rejected')
+														<span class="text-xs text-red-600 dark:text-red-400 font-medium">✗ {{ __('Rejected') }}</span>
+													@else
+														<span class="text-xs text-gray-400 dark:text-gray-500">{{ __('Pending') }}</span>
+													@endif
+												</td>
+											</tr>
+										@endforeach
+									</tbody>
+								</table>
+							</div>
+						@else
+							<div class="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+								{{ __('No media buyers assigned yet.') }}
+								<a href="{{ route('testing-products.assign-media-buyers', $testingProduct) }}" class="text-indigo-600 dark:text-indigo-400 hover:underline ml-1">
+									{{ __('Assign now') }}
+								</a>
+							</div>
+						@endif
 					</div>
-				@endif
+				@empty
+					<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-8 text-center">
+						<p class="text-gray-500 dark:text-gray-400">{{ __('No testing products found.') }}</p>
+					</div>
+				@endforelse
 			</div>
+
+			@if($testingProducts->hasPages())
+				<div class="mt-4">
+					{{ $testingProducts->links() }}
+				</div>
+			@endif
 		</div>
 	</div>
 </x-admin-layout>

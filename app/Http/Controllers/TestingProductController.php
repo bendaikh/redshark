@@ -14,7 +14,9 @@ class TestingProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = TestingProduct::query();
+        $query = TestingProduct::with(['mediaBuyers' => function($q) {
+            $q->orderBy('name');
+        }]);
         
         // Search functionality
         if ($search = $request->input('q')) {
@@ -124,5 +126,65 @@ class TestingProductController extends Controller
         $testingProduct->mediaBuyers()->sync($request->input('media_buyers', []));
         
         return redirect()->route('testing-products.index')->with('status', 'Media buyers assigned successfully.');
+    }
+
+    /**
+     * Review testing results submitted by media buyers.
+     */
+    public function reviewResults(Request $request)
+    {
+        // Get all testing products with media buyers that have submitted results (status: done)
+        $testingProducts = TestingProduct::with(['mediaBuyers' => function($query) {
+            $query->wherePivot('status', 'done');
+        }])->get();
+        
+        // Filter only products that have media buyers with done status
+        $testingProducts = $testingProducts->filter(function($product) {
+            return $product->mediaBuyers->count() > 0;
+        });
+        
+        return view('testing-products.review-results', compact('testingProducts'));
+    }
+
+    /**
+     * Approve testing results.
+     */
+    public function approveResult($testing_product, User $user)
+    {
+        $testingProduct = TestingProduct::findOrFail($testing_product);
+        
+        // Verify the user is assigned to this testing product
+        $pivot = $testingProduct->mediaBuyers()->where('users.id', $user->id)->first();
+        
+        if (!$pivot || $pivot->pivot->status !== 'done') {
+            return redirect()->back()->with('error', 'Cannot approve this result.');
+        }
+        
+        $testingProduct->mediaBuyers()->updateExistingPivot($user->id, [
+            'status' => 'approved',
+        ]);
+        
+        return redirect()->back()->with('status', 'Result approved successfully.');
+    }
+
+    /**
+     * Reject testing results.
+     */
+    public function rejectResult($testing_product, User $user)
+    {
+        $testingProduct = TestingProduct::findOrFail($testing_product);
+        
+        // Verify the user is assigned to this testing product
+        $pivot = $testingProduct->mediaBuyers()->where('users.id', $user->id)->first();
+        
+        if (!$pivot || $pivot->pivot->status !== 'done') {
+            return redirect()->back()->with('error', 'Cannot reject this result.');
+        }
+        
+        $testingProduct->mediaBuyers()->updateExistingPivot($user->id, [
+            'status' => 'rejected',
+        ]);
+        
+        return redirect()->back()->with('status', 'Result rejected. Media buyer can resubmit.');
     }
 }

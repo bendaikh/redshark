@@ -57,7 +57,9 @@ class User extends Authenticatable
 	 */
 	public function testingProducts()
 	{
-		return $this->belongsToMany(TestingProduct::class, 'media_buyer_testing_product', 'user_id', 'testing_product_id')->withTimestamps();
+		return $this->belongsToMany(TestingProduct::class, 'media_buyer_testing_product', 'user_id', 'testing_product_id')
+			->withPivot('status', 'leads', 'ads_spend')
+			->withTimestamps();
 	}
 
 	/**

@@ -34,6 +34,8 @@ class TestingProduct extends Model
      */
     public function mediaBuyers()
     {
-        return $this->belongsToMany(User::class, 'media_buyer_testing_product', 'testing_product_id', 'user_id')->withTimestamps();
+        return $this->belongsToMany(User::class, 'media_buyer_testing_product', 'testing_product_id', 'user_id')
+            ->withPivot('status', 'leads', 'ads_spend')
+            ->withTimestamps();
     }
 }
