@@ -55,6 +55,16 @@ class Product extends Model
 	}
 
 	/**
+	 * Get the media buyers assigned to this product.
+	 */
+	public function mediaBuyers()
+	{
+		return $this->belongsToMany(User::class, 'media_buyer_product', 'product_id', 'user_id')
+			->withPivot('cost_total')
+			->withTimestamps();
+	}
+
+	/**
 	 * Calculate the true initial quantity from all validated sourcings
 	 */
 	public function getInitialQtyAttribute()

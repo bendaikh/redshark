@@ -59,5 +59,15 @@ class User extends Authenticatable
 	{
 		return $this->belongsToMany(TestingProduct::class, 'media_buyer_testing_product', 'user_id', 'testing_product_id')->withTimestamps();
 	}
+
+	/**
+	 * Get the products assigned to this user (if media buyer).
+	 */
+	public function products()
+	{
+		return $this->belongsToMany(Product::class, 'media_buyer_product', 'user_id', 'product_id')
+			->withPivot('cost_total')
+			->withTimestamps();
+	}
 }
 

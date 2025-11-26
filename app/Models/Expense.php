@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Expense extends Model
 {
     protected $fillable = [
+        'user_id',
         'expense_category_id',
         'country_id',
         'amount',
@@ -18,6 +19,11 @@ class Expense extends Model
         'date' => 'date',
         'amount' => 'decimal:2',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function expenseCategory()
     {

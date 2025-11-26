@@ -33,7 +33,7 @@ class AuthenticatedSessionController extends Controller
 				return redirect()->intended(route('admin.dashboard', absolute: false));
 			}
 			if ($user->hasRole('media_buyer')) {
-				return redirect()->intended(route('media-buyer.testing', absolute: false));
+				return redirect()->intended(route('media-buyer.dashboard', absolute: false));
 			}
 		}
 		return redirect()->intended(route('dashboard', absolute: false));

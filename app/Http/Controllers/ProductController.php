@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Country;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -161,6 +162,53 @@ class ProductController extends Controller
 			'invoiceItems' => $invoiceItems,
 			'adsData' => $adsData,
 		]);
+	}
+
+	/**
+	 * Show the form for assigning media buyers to a product.
+	 */
+	public function assignMediaBuyers(Product $product)
+	{
+		$mediaBuyers = User::role('media_buyer')->orderBy('name')->get();
+		$assignedMediaBuyers = $product->mediaBuyers->pluck('id')->toArray();
+		
+		// Get current cost_total values for assigned media buyers
+		$mediaBuyerData = [];
+		foreach ($product->mediaBuyers as $mb) {
+			$mediaBuyerData[$mb->id] = [
+				'cost_total' => $mb->pivot->cost_total ?? ''
+			];
+		}
+		
+		return view('products.assign-media-buyers', compact('product', 'mediaBuyers', 'assignedMediaBuyers', 'mediaBuyerData'));
+	}
+
+	/**
+	 * Update the media buyers assigned to a product.
+	 */
+	public function updateMediaBuyers(Request $request, Product $product)
+	{
+		$request->validate([
+			'media_buyers' => 'nullable|array',
+			'media_buyers.*' => 'exists:users,id',
+			'cost_totals' => 'nullable|array',
+			'cost_totals.*' => 'nullable|numeric|min:0',
+		]);
+
+		$mediaBuyers = $request->input('media_buyers', []);
+		$costTotals = $request->input('cost_totals', []);
+		
+		// Prepare sync data with cost_total values
+		$syncData = [];
+		foreach ($mediaBuyers as $userId) {
+			$syncData[$userId] = [
+				'cost_total' => $costTotals[$userId] ?? null
+			];
+		}
+		
+		$product->mediaBuyers()->sync($syncData);
+		
+		return redirect()->route('products.index')->with('status', 'Media buyers assigned successfully.');
 	}
 }
 

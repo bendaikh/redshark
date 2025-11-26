@@ -76,4 +76,20 @@ class ExpenseCategoryController extends Controller
         $expenseCategory->delete();
         return redirect()->route('expense-categories.index')->with('status', 'Expense category deleted.');
     }
+
+    /**
+     * Toggle the public status of an expense category.
+     */
+    public function togglePublic(ExpenseCategory $expenseCategory)
+    {
+        $expenseCategory->update([
+            'is_public' => !$expenseCategory->is_public
+        ]);
+        
+        $status = $expenseCategory->is_public 
+            ? 'Expense category is now public (visible to media buyers).' 
+            : 'Expense category is now private (hidden from media buyers).';
+        
+        return redirect()->route('expense-categories.index')->with('status', $status);
+    }
 }

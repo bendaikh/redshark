@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 class AdsCampaign extends Model
 {
 	protected $fillable = [
+		'user_id',
 		'name',
 		'platform_id',
 		'country_id',
@@ -20,6 +21,11 @@ class AdsCampaign extends Model
 		'date_from' => 'date',
 		'date_to' => 'date',
 	];
+
+	public function user()
+	{
+		return $this->belongsTo(User::class);
+	}
 
 	public function country()
 	{
@@ -48,6 +54,18 @@ class AdsCampaign extends Model
 		return DB::table('ads_campaign_product')
 			->where('ads_campaign_id', $this->id)
 			->sum('amount_spent') ?: 0;
+	}
+
+	public function getTotalLeadsAttribute()
+	{
+		if ($this->relationLoaded('products')) {
+			return $this->products->sum(function($product) {
+				return $product->pivot->leads ?? 0;
+			});
+		}
+		return DB::table('ads_campaign_product')
+			->where('ads_campaign_id', $this->id)
+			->sum('leads') ?: 0;
 	}
 }
 
