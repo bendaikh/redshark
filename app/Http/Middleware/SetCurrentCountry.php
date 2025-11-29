@@ -27,10 +27,10 @@ class SetCurrentCountry
 		
 		$selectedId = (int) ($request->session()->get('current_country_id') ?? 0);
 
-		// If selectedId is 0, it means "Global" view (all countries)
-		// Don't try to fetch a country for Global view
+		// If selectedId is 0, it means "All" view (all accessible countries)
+		// Don't try to fetch a country for "All" view
 		if ($selectedId === 0 && $user) {
-			// For Global view, just mark as global
+			// For "All" view, just mark as global
 			View::share('currentCountry', null);
 			View::share('isGlobalView', true);
 			return $next($request);
@@ -39,6 +39,10 @@ class SetCurrentCountry
 		if (! $selectedId && $user) {
 			if ($user->hasRole('superadmin')) {
 				$selectedId = Country::value('id');
+			} elseif ($user->hasRole('media_buyer')) {
+				// For media buyers, get the first country from their accessible countries
+				$accessibleCountries = $user->getAccessibleCountries();
+				$selectedId = $accessibleCountries->first()->id ?? null;
 			} else {
 				$selectedId = $user->countries()->value('countries.id');
 			}
@@ -50,10 +54,22 @@ class SetCurrentCountry
 		$currentCountry = $selectedId ? Country::find($selectedId) : null;
 
 		if ($user && $currentCountry && ! $user->hasRole('superadmin')) {
-			$hasAccess = $user->countries()->whereKey($currentCountry->id)->exists();
-			if (! $hasAccess) {
-				$currentCountry = $user->countries()->first();
-				$request->session()->put('current_country_id', optional($currentCountry)->id);
+			// Check if user has access to the selected country
+			if ($user->hasRole('media_buyer')) {
+				// For media buyers, check if they have products in this country
+				$accessibleCountries = $user->getAccessibleCountries();
+				$hasAccess = $accessibleCountries->contains('id', $currentCountry->id);
+				
+				if (! $hasAccess) {
+					$currentCountry = $accessibleCountries->first() ?? null;
+					$request->session()->put('current_country_id', optional($currentCountry)->id);
+				}
+			} else {
+				$hasAccess = $user->countries()->whereKey($currentCountry->id)->exists();
+				if (! $hasAccess) {
+					$currentCountry = $user->countries()->first();
+					$request->session()->put('current_country_id', optional($currentCountry)->id);
+				}
 			}
 		}
 

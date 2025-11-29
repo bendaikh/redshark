@@ -76,6 +76,23 @@
 					</svg>
 					<span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Media Buyer</span>
 				</div>
+				<!-- Country selector for mobile -->
+				<div class="flex items-center gap-2">
+					<select onchange="window.location.href='?country=' + this.value" class="rounded border-gray-300 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+						@php
+							$accessibleCountries = auth()->user()->getAccessibleCountries();
+							$currentCountryId = session('current_country_id');
+						@endphp
+						<option value="0" {{ $currentCountryId == 0 || !$currentCountryId ? 'selected' : '' }}>
+							All
+						</option>
+						@foreach($accessibleCountries as $country)
+							<option value="{{ $country->id }}" {{ $currentCountryId == $country->id ? 'selected' : '' }}>
+								{{ $country->name }}
+							</option>
+						@endforeach
+					</select>
+				</div>
 				<!-- Theme toggle for mobile -->
 				<button @click="toggleTheme()" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle Theme">
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,6 +204,23 @@
 										<path x-show="darkMode" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1m-16 0H1m15.364 1.636l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
 									</svg>
 								</button>
+								<!-- Country selector for desktop -->
+								<div class="hidden md:flex items-center gap-2">
+									<select onchange="window.location.href='?country=' + this.value" class="rounded border-gray-300 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+										@php
+											$accessibleCountries = auth()->user()->getAccessibleCountries();
+											$currentCountryId = session('current_country_id');
+										@endphp
+										<option value="0" {{ $currentCountryId == 0 || !$currentCountryId ? 'selected' : '' }}>
+											All
+										</option>
+										@foreach($accessibleCountries as $country)
+											<option value="{{ $country->id }}" {{ $currentCountryId == $country->id ? 'selected' : '' }}>
+												{{ $country->name }}
+											</option>
+										@endforeach
+									</select>
+								</div>
 							</div>
 						</header>
 					@else

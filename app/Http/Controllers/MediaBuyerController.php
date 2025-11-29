@@ -19,9 +19,11 @@ class MediaBuyerController extends Controller
     public function dashboard(Request $request)
     {
         $user = auth()->user();
+        $countryId = (int) $request->session()->get('current_country_id');
         
-        // Get all campaigns for this media buyer
+        // Get all campaigns for this media buyer, filtered by country if selected
         $campaigns = AdsCampaign::where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->with(['products'])
             ->get();
         
@@ -31,37 +33,45 @@ class MediaBuyerController extends Controller
         $totalSpent = $campaigns->sum('total_amount_spent');
         $avgCostPerLead = $totalLeads > 0 ? $totalSpent / $totalLeads : 0;
         
-        // Get total expenses
-        $totalExpenses = Expense::where('user_id', $user->id)->sum('amount');
+        // Get total expenses filtered by country
+        $totalExpenses = Expense::where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
+            ->sum('amount');
         
-        // Get assigned products count
-        $totalProducts = $user->products()->count();
+        // Get assigned products count filtered by country
+        $totalProducts = $user->products()
+            ->when($countryId, fn($q) => $q->where('products.country_id', $countryId))
+            ->count();
         
-        // Get recent campaigns (last 5)
+        // Get recent campaigns (last 5) filtered by country
         $recentCampaigns = AdsCampaign::where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->with(['platform', 'country', 'products'])
             ->orderByDesc('date_from')
             ->limit(5)
             ->get();
         
-        // Get campaign data for chart (last 30 days)
+        // Get campaign data for chart (last 30 days) filtered by country
         $campaignStats = AdsCampaign::where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->where('date_from', '>=', now()->subDays(30))
             ->selectRaw('DATE(date_from) as date, COUNT(*) as count, SUM((SELECT SUM(amount_spent) FROM ads_campaign_product WHERE ads_campaign_id = ads_campaigns.id)) as spent')
             ->groupBy('date')
             ->orderBy('date')
             ->get();
         
-        // Get top performing products (based on leads from user's campaigns)
+        // Get top performing products (based on leads from user's campaigns) filtered by country
         $topProducts = Product::whereHas('mediaBuyers', function($q) use ($user) {
                 $q->where('users.id', $user->id);
             })
+            ->when($countryId, fn($q) => $q->where('products.country_id', $countryId))
             ->with(['adsCampaigns' => function($q) use ($user) {
                 $q->where('user_id', $user->id);
             }])
             ->get()
-            ->map(function($product) use ($user) {
+            ->map(function($product) use ($user, $countryId) {
                 $userCampaigns = AdsCampaign::where('user_id', $user->id)
+                    ->when($countryId, fn($q) => $q->where('country_id', $countryId))
                     ->whereHas('products', function($q) use ($product) {
                         $q->where('products.id', $product->id);
                     })
@@ -104,9 +114,14 @@ class MediaBuyerController extends Controller
     public function testing(Request $request)
     {
         $user = auth()->user();
+        $countryId = (int) $request->session()->get('current_country_id');
         
-        // Get testing products assigned to this media buyer
-        $query = $user->testingProducts();
+        // Get testing products assigned to this media buyer, filtered by country
+        $query = $user->testingProducts()
+            ->when($countryId, function($q) use ($countryId) {
+                // Testing products use a JSON array of country_ids
+                $q->whereJsonContains('country_ids', $countryId);
+            });
         
         // Search functionality
         if ($search = $request->input('q')) {
@@ -197,9 +212,13 @@ class MediaBuyerController extends Controller
     public function products(Request $request)
     {
         $user = auth()->user();
+        $countryId = (int) $request->session()->get('current_country_id');
         
-        // Get products assigned to this media buyer
-        $query = $user->products();
+        // Get products assigned to this media buyer, filtered by country
+        $query = $user->products()
+            ->when($countryId, function($q) use ($countryId) {
+                $q->where('products.country_id', $countryId);
+            });
         
         // Search functionality
         if ($search = $request->input('q')) {
@@ -220,9 +239,11 @@ class MediaBuyerController extends Controller
     public function expenses(Request $request)
     {
         $user = auth()->user();
+        $countryId = (int) $request->session()->get('current_country_id');
         
         $query = Expense::with('expenseCategory', 'country')
             ->where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->orderByDesc('date')
             ->orderByDesc('created_at');
         
@@ -236,9 +257,13 @@ class MediaBuyerController extends Controller
      */
     public function createExpense()
     {
+        $user = auth()->user();
         // Media buyers can only see public expense categories
         $expenseCategories = ExpenseCategory::where('is_public', true)->orderBy('name')->get();
-        $countries = Country::orderBy('name')->get();
+        
+        // Get countries accessible to this media buyer
+        $countries = $user->getAccessibleCountries();
+        
         return view('media-buyer.expenses-create', compact('expenseCategories', 'countries'));
     }
 
@@ -281,11 +306,13 @@ class MediaBuyerController extends Controller
     public function campaigns(Request $request)
     {
         $user = auth()->user();
+        $countryId = (int) $request->session()->get('current_country_id');
         $from = $request->input('from');
         $to = $request->input('to');
 
         $query = AdsCampaign::with(['platform', 'country', 'products'])
             ->where('user_id', $user->id)
+            ->when($countryId, fn($q) => $q->where('country_id', $countryId))
             ->when($from, fn($q) => $q->whereDate('date_from', '>=', $from))
             ->when($to, fn($q) => $q->whereDate('date_to', '<=', $to))
             ->orderByDesc('date_from');
@@ -306,7 +333,9 @@ class MediaBuyerController extends Controller
      */
     public function createCampaign()
     {
-        $countries = Country::orderBy('name')->get();
+        $user = auth()->user();
+        // Get countries accessible to this media buyer
+        $countries = $user->getAccessibleCountries();
         $platforms = AdsPlatform::where('is_active', true)->orderBy('name')->get();
         return view('media-buyer.campaigns-create', compact('countries', 'platforms'));
     }

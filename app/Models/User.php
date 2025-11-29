@@ -71,5 +71,34 @@ class User extends Authenticatable
 			->withPivot('cost_total')
 			->withTimestamps();
 	}
+
+	/**
+	 * Get the countries accessible to this media buyer based on their assigned products.
+	 */
+	public function getAccessibleCountries()
+	{
+		if ($this->hasRole('superadmin')) {
+			return Country::where('name', '!=', 'Global')->orderBy('name')->get();
+		}
+
+		if ($this->hasRole('media_buyer')) {
+			// Get distinct countries from products assigned to this media buyer
+			return Country::whereIn('id', function($query) {
+				$query->select('country_id')
+					->from('products')
+					->whereIn('id', function($subQuery) {
+						$subQuery->select('product_id')
+							->from('media_buyer_product')
+							->where('user_id', $this->id);
+					});
+			})
+			->where('name', '!=', 'Global')
+			->orderBy('name')
+			->get();
+		}
+
+		// For other roles, return empty collection
+		return collect();
+	}
 }
 
