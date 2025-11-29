@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SetCurrentCountry;
+use App\Http\Middleware\SetLocale;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Share and enforce current workspace (country) context on all web routes
+        // Add locale middleware for multi-language support
         $middleware->appendToGroup('web', [
+            SetLocale::class,
             SetCurrentCountry::class,
         ]);
 

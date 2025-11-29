@@ -18,6 +18,25 @@
                 </div>
             </div>
 
+            <!-- Language Switcher -->
+            <div class="hidden sm:flex sm:items-center sm:ms-4 relative" x-data="{ langOpen: false }" @click.outside="langOpen = false">
+                <button @click="langOpen = !langOpen" class="inline-flex items-center gap-2 px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
+                    <span class="text-lg">{{ $supportedLocales[$currentLocale ?? 'en']['flag'] ?? '🌐' }}</span>
+                    <span class="hidden lg:inline">{{ $supportedLocales[$currentLocale ?? 'en']['native'] ?? 'English' }}</span>
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+                <div x-show="langOpen" x-transition class="absolute top-full {{ ($isRtl ?? false) ? 'left-0' : 'right-0' }} mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 min-w-[150px]">
+                    @foreach($supportedLocales ?? [] as $code => $locale)
+                        <a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}" class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 {{ ($currentLocale ?? 'en') === $code ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300' }}">
+                            <span class="text-lg">{{ $locale['flag'] }}</span>
+                            <span>{{ $locale['native'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
@@ -70,6 +89,21 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+        </div>
+
+        <!-- Responsive Language Switcher -->
+        <div class="pt-4 pb-2 border-t border-gray-200 dark:border-gray-600">
+            <div class="px-4">
+                <div class="font-medium text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ __('Language') }}</div>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($supportedLocales ?? [] as $code => $locale)
+                        <a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm {{ ($currentLocale ?? 'en') === $code ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+                            <span>{{ $locale['flag'] }}</span>
+                            <span>{{ $locale['native'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         </div>
 
         <!-- Responsive Settings Options -->
