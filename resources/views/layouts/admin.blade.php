@@ -19,6 +19,43 @@
 		@vite(['resources/css/app.css', 'resources/js/app.js'])
 
 		<!-- RTL Styles -->
+		<!-- Mobile-first responsive styles -->
+		<style>
+			/* Touch-friendly utilities */
+			.touch-manipulation { touch-action: manipulation; }
+			.safe-area-top { padding-top: env(safe-area-inset-top); }
+			.safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+			
+			/* Smooth scrolling for mobile */
+			@media (max-width: 768px) {
+				html { scroll-behavior: smooth; }
+				body { -webkit-overflow-scrolling: touch; }
+				
+				/* Prevent horizontal scroll */
+				body, html { overflow-x: hidden; max-width: 100vw; }
+				
+				/* Better tap highlighting */
+				* { -webkit-tap-highlight-color: rgba(99, 102, 241, 0.1); }
+				
+				/* Larger touch targets */
+				button, a, select, input[type="checkbox"] { min-height: 44px; min-width: 44px; }
+				
+				/* Better form inputs on mobile */
+				input, select, textarea { font-size: 16px !important; /* Prevents zoom on iOS */ }
+				
+				/* Cards spacing on mobile */
+				.mobile-card { margin-bottom: 1rem; }
+				
+				/* Text sizes for mobile readability */
+				.text-3xl { font-size: 1.5rem; line-height: 2rem; }
+			}
+			
+			/* Smooth sidebar animation */
+			.sidebar-transition {
+				transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+		</style>
+		
 		@if($isRtl ?? false)
 		<style>
 			body { font-family: 'Cairo', sans-serif !important; }
@@ -87,60 +124,80 @@
 	}">
 		<div class="min-h-screen bg-gray-100 dark:bg-gray-900">
 			<!-- Mobile top bar -->
-			<div class="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-				<button @click="sidebarOpen = true" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-					</svg>
-				</button>
-				<div class="flex items-center gap-3">
-					<!-- Cube icon -->
-					<svg class="h-6 w-6 text-indigo-600" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
-					</svg>
-					<span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Admin</span>
-				</div>
-				<!-- Theme toggle for mobile -->
-				<button onclick="toggleDarkMode()" class="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle Theme" id="mobileThemeBtn">
-					<svg id="mobileThemeIcon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-					</svg>
-				</button>
-				<!-- Language selector for mobile -->
-				<div class="flex items-center gap-2" x-data="{ langOpen: false }" @click.outside="langOpen = false">
-					<button @click="langOpen = !langOpen" class="flex items-center gap-1 px-2 py-1 rounded text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-						<span>{{ $supportedLocales[$currentLocale ?? 'en']['flag'] ?? '🌐' }}</span>
-						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-						</svg>
-					</button>
-					<div x-show="langOpen" x-transition class="absolute top-12 {{ ($isRtl ?? false) ? 'left-2' : 'right-2' }} bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50">
-						@foreach($supportedLocales ?? [] as $code => $locale)
-							<a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}" class="flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 {{ ($currentLocale ?? 'en') === $code ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300' }}">
-								<span>{{ $locale['flag'] }}</span>
-								<span>{{ $locale['native'] }}</span>
-							</a>
-						@endforeach
+			<div class="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 safe-area-top">
+				<!-- Main row: hamburger, logo, quick actions -->
+				<div class="flex items-center justify-between px-3 py-2.5">
+					<div class="flex items-center gap-2">
+						<button @click="sidebarOpen = true" class="p-2.5 -ml-1 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 touch-manipulation">
+							<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+							</svg>
+						</button>
+						<div class="flex items-center gap-2">
+							<svg class="h-7 w-7 text-indigo-600 dark:text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
+								<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
+							</svg>
+							<span class="text-base font-bold text-gray-900 dark:text-white">{{ __('Admin') }}</span>
+						</div>
+					</div>
+					<div class="flex items-center gap-1">
+						<!-- Theme toggle -->
+						<button onclick="toggleDarkMode()" class="p-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 touch-manipulation" title="Toggle Theme" id="mobileThemeBtn">
+							<svg id="mobileThemeIcon" class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+							</svg>
+						</button>
+						<!-- More options dropdown -->
+						<div x-data="{ mobileMenuOpen: false }" @click.outside="mobileMenuOpen = false" class="relative">
+							<button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 touch-manipulation">
+								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+								</svg>
+							</button>
+							<div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="absolute {{ ($isRtl ?? false) ? 'left-0' : 'right-0' }} mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50">
+								<!-- Language section -->
+								<div class="px-3 py-2 border-b border-gray-100 dark:border-gray-700">
+									<p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">{{ __('Language') }}</p>
+									<div class="space-y-1">
+										@foreach($supportedLocales ?? [] as $code => $locale)
+											<a href="{{ request()->fullUrlWithQuery(['lang' => $code]) }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm {{ ($currentLocale ?? 'en') === $code ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+												<span class="text-lg">{{ $locale['flag'] }}</span>
+												<span>{{ $locale['native'] }}</span>
+												@if(($currentLocale ?? 'en') === $code)
+													<svg class="ml-auto h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+												@endif
+											</a>
+										@endforeach
+									</div>
+								</div>
+								<!-- Quick links -->
+								<div class="px-3 py-2">
+									<a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+										<svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+										<span>{{ __('User Dashboard') }}</span>
+									</a>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
-				<!-- Country selector for mobile -->
-				<div class="flex items-center gap-2">
-					<select onchange="window.location.href='?country=' + this.value" class="rounded border-gray-300 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100">
+				<!-- Secondary row: Country selector -->
+				<div class="px-3 pb-2.5">
+					<select onchange="window.location.href='?country=' + this.value" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm font-medium text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 						@php
 							$countries = \App\Models\Country::where('name', '!=', 'Global')->orderBy('name')->get();
 							$currentCountryId = session('current_country_id');
 						@endphp
 						<option value="0" {{ $currentCountryId == 0 || !$currentCountryId ? 'selected' : '' }}>
-							{{ __('Global') }}
+							🌍 {{ __('Global - All Countries') }}
 						</option>
 						@foreach($countries as $country)
 							<option value="{{ $country->id }}" {{ $currentCountryId == $country->id ? 'selected' : '' }}>
-								{{ $country->name }}
+								📍 {{ $country->name }}
 							</option>
 						@endforeach
 					</select>
 				</div>
-				<a href="{{ route('dashboard') }}" class="text-sm text-indigo-600 dark:text-indigo-400">{{ __('App') }}</a>
 			</div>
 
 			<div class="flex">
@@ -304,10 +361,10 @@
 					</div>
 
 					<!-- Close button for mobile -->
-					<button @click="sidebarOpen = false" class="md:hidden absolute top-3 {{ ($isRtl ?? false) ? 'left-3' : 'right-3' }} p-2 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<button @click="sidebarOpen = false" class="md:hidden absolute top-3 {{ ($isRtl ?? false) ? 'left-3' : 'right-3' }} p-3 rounded-xl text-white/80 hover:text-white hover:bg-white/10 active:bg-white/20 touch-manipulation transition-colors">
+						<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
+						</svg>
 					</button>
 				</aside>
 

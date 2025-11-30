@@ -10,45 +10,41 @@
 
 	<div class="space-y-6">
 		<!-- Filters -->
-		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-4">
-			<form method="GET" class="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4">
+			<form method="GET" class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-[1fr_1fr_auto] sm:gap-3 sm:items-end">
 				<div>
-					<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('From') }}</label>
-					<div class="mt-1 relative">
-						<input type="date" name="from" value="{{ request('from') }}" class="w-full rounded-md border-gray-300 pl-3 pr-10 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
-						<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-							<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10h10M7 14h6M7 2h10a2 2 0 0 1 2 2v3H5V4a2 2 0 0 1 2-2zM5 9h14v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
-						</div>
+					<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('From') }}</label>
+					<div class="relative">
+						<input type="date" name="from" value="{{ request('from') }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 					</div>
 				</div>
 				<div>
-					<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('To') }}</label>
-					<div class="mt-1 relative">
-						<input type="date" name="to" value="{{ request('to') }}" class="w-full rounded-md border-gray-300 pl-3 pr-10 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
-						<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400">
-							<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10h10M7 14h6M7 2h10a2 2 0 0 1 2 2v3H5V4a2 2 0 0 1 2-2zM5 9h14v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
-						</div>
+					<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('To') }}</label>
+					<div class="relative">
+						<input type="date" name="to" value="{{ request('to') }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 					</div>
 				</div>
-				<div class="flex md:justify-end">
-					<button class="px-4 py-2 h-10 md:h-auto bg-gray-900 text-white rounded-md hover:bg-gray-800 dark:bg-indigo-600 dark:hover:bg-indigo-500">{{ __('Apply') }}</button>
+				<div class="sm:col-span-2 md:col-span-1">
+					<button class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors touch-manipulation">
+						{{ __('Apply Filters') }}
+					</button>
 				</div>
 			</form>
 		</div>
 
 		<!-- Revenue Trends Section -->
-		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg">
-			<div class="p-6">
-				<div class="flex items-center justify-between mb-4">
+		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden">
+			<div class="p-4 sm:p-6">
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
 					<div>
-				<h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-					<span class="inline-flex items-center">
-						<svg class="w-7 h-7 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-						</svg>
-						{{ __('ACCOUNTING BALANCE') }}
-					</span>
-				</h3>
+						<h3 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100">
+							<span class="inline-flex items-center gap-2">
+								<svg class="w-6 h-6 sm:w-7 sm:h-7 text-green-600 dark:text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								</svg>
+								<span>{{ __('ACCOUNTING BALANCE') }}</span>
+							</span>
+						</h3>
 						<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
 							{{ number_format($totalOrders ?? 0) }} {{ __('ORDERS') }}
 						</p>
@@ -58,26 +54,24 @@
 							</p>
 						@endif
 					</div>
-					<div class="flex items-center space-x-2">
-					<div class="text-right">
-						<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Balance') }}</p>
-						<p class="text-2xl font-bold text-green-600 dark:text-green-400">
+					<div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-3 sm:p-4 text-center sm:text-right">
+						<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Total Balance') }}</p>
+						<p class="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
 							${{ number_format(array_sum($chartRevenues ?? []), 2) }}
 						</p>
-					</div>
 					</div>
 				</div>
 				<div class="text-sm text-gray-600 dark:text-gray-400 mb-3">
 					{{ __('Balance trends by day') }}
 				</div>
-				<div id="revenueChart" class="w-full" style="height: 250px;"></div>
+				<div id="revenueChart" class="w-full -mx-2 sm:mx-0" style="height: 220px; min-height: 180px;"></div>
 			</div>
 		</div>
 
 		<!-- Accounting Data Section -->
 		<div class="mb-6">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Accounting Data') }}</h3>
-			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Accounting Data') }}</h3>
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
 				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
 					<div class="flex items-center justify-between">
 						<div>
@@ -131,9 +125,9 @@
 
 		<!-- Marketing Performance Section -->
 		<div class="mb-6">
-			<div class="flex items-center justify-between mb-4">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
-				<form method="GET" class="flex items-center gap-2">
+			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
+				<form method="GET" class="w-full sm:w-auto">
 					<!-- Preserve existing filters -->
 					@if($from)
 						<input type="hidden" name="from" value="{{ $from }}">
@@ -142,9 +136,9 @@
 						<input type="hidden" name="to" value="{{ $to }}">
 					@endif
 					
-					<div class="flex items-center gap-2">
-						<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('Filter by Product:') }}</label>
-						<select name="product_id" onchange="this.form.submit()" class="rounded-md border-gray-300 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500">
+					<div class="flex flex-col sm:flex-row sm:items-center gap-2">
+						<label class="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">{{ __('Filter by Product:') }}</label>
+						<select name="product_id" onchange="this.form.submit()" class="w-full sm:w-auto py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 							<option value="">{{ __('All Products') }}</option>
 							@foreach($allProducts as $product)
 								<option value="{{ $product->id }}" {{ $productId == $product->id ? 'selected' : '' }}>
@@ -166,37 +160,36 @@
 				</div>
 			@endif
 			
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-indigo-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Leads') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalLeads ?? 0) }}</p>
+			<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-indigo-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Total Leads') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalLeads ?? 0) }}</p>
 				</div>
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spend') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent ?? 0, 2) }}</p>
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-red-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spend') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent ?? 0, 2) }}</p>
 				</div>
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-amber-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Cost Per Lead') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-amber-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Cost Per Lead') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
 						{{ $costPerLead !== null ? '$' . number_format($costPerLead, 2) : __('N/A') }}
 					</p>
 				</div>
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Orders') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalOrders ?? 0) }}</p>
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-blue-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Total Orders') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalOrders ?? 0) }}</p>
 				</div>
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Cost Per Delivered Order') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-green-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">{{ __('Cost Per Delivered') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
 						{{ $costPerDelivered !== null ? '$' . number_format($costPerDelivered, 2) : __('N/A') }}
 					</p>
 				</div>
-				<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
-					<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Delivery Rate') }}</p>
-					<p class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+				<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-l-4 border-purple-500">
+					<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">{{ __('Delivery Rate') }}</p>
+					<p class="mt-1 sm:mt-2 text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">
 						{{ $deliveryRate !== null ? number_format($deliveryRate, 2) . '%' : __('N/A') }}
 					</p>
-					<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ __('Total Orders / Total Leads') }}</p>
 				</div>
 			</div>
 
@@ -227,9 +220,9 @@
 			</div>
 
 			<!-- Business KPIs relocated under marketing performance -->
-			<div class="mt-8">
-				<h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Business KPIs') }}</h4>
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+			<div class="mt-6 sm:mt-8">
+				<h4 class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Business KPIs') }}</h4>
+				<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
 						<div class="flex items-center justify-between">
 							<div>
@@ -279,10 +272,10 @@
 		</div>
 
 		<!-- Management Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
 			<!-- Stock Management -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Stock Management') }}</h3>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Stock Management') }}</h3>
 				<div class="space-y-2">
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Total Stock Value') }}</span>
@@ -296,8 +289,8 @@
 			</div>
 
 			<!-- Sourcing Management -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Sourcing Management') }}</h3>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Sourcing Management') }}</h3>
 				<div class="space-y-2">
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Total Sourcings') }}</span>
@@ -315,8 +308,8 @@
 			</div>
 
 			<!-- Ads Management -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Ads Management') }}</h3>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm sm:col-span-2 lg:col-span-1">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Ads Management') }}</h3>
 				<div class="space-y-2">
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Total Campaigns') }}</span>
@@ -331,15 +324,15 @@
 		</div>
 
 		<!-- Business Overview Chart -->
-		<div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-			<h3 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Business Overview') }}</h3>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+		<div class="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+			<h3 class="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Business Overview') }}</h3>
+			<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4 sm:mb-6">
 				{{ __('Comprehensive analytics showing your business performance over time') }}
 				@if(!$from || !$to)
-					<span class="text-xs text-orange-600 dark:text-orange-400">({{ __('Showing all-time data. Use date filters for specific periods.') }})</span>
+					<span class="block sm:inline mt-1 sm:mt-0 text-xs text-orange-600 dark:text-orange-400">({{ __('Showing all-time data. Use date filters for specific periods.') }})</span>
 				@endif
 			</p>
-			<div id="businessOverviewChart" style="min-height: 400px;">
+			<div id="businessOverviewChart" class="-mx-2 sm:mx-0" style="min-height: 300px; height: 350px;">
 				@if(empty($chartData) || (isset($chartData['profits']) && $chartData['profits']->isEmpty()))
 					<div class="flex items-center justify-center h-96 text-gray-500 dark:text-gray-400">
 						<div class="text-center">
@@ -356,41 +349,41 @@
 
 		<!-- Charts Section -->
 		@if(!empty($chartData))
-		<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
 			<!-- Profits Over Time -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Net Profit Over Time') }}</h3>
-				<div id="profitsChart" style="min-height: 300px;"></div>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Net Profit Over Time') }}</h3>
+				<div id="profitsChart" class="-mx-2 sm:mx-0" style="min-height: 250px; height: 280px;"></div>
 			</div>
 
 			<!-- Ads Spending Over Time -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Ads Spending Over Time') }}</h3>
-				<div id="adsChart" style="min-height: 300px;"></div>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Ads Spending Over Time') }}</h3>
+				<div id="adsChart" class="-mx-2 sm:mx-0" style="min-height: 250px; height: 280px;"></div>
 			</div>
 
 			<!-- Invoices Over Time -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Invoices Over Time') }}</h3>
-				<div id="invoicesChart" style="min-height: 300px;"></div>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Invoices Over Time') }}</h3>
+				<div id="invoicesChart" class="-mx-2 sm:mx-0" style="min-height: 250px; height: 280px;"></div>
 			</div>
 
 			<!-- Revenue vs Ads Cost -->
-			<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Revenue vs Ads Cost') }}</h3>
-				<div id="revenueVsAdsChart" style="min-height: 300px;"></div>
+			<div class="p-4 sm:p-5 bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Revenue vs Ads Cost') }}</h3>
+				<div id="revenueVsAdsChart" class="-mx-2 sm:mx-0" style="min-height: 250px; height: 280px;"></div>
 			</div>
 		</div>
 		@endif
 
 		<!-- Profitable Products -->
-		<div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Top Profitable Products') }}</h3>
+		<div class="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+			<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Top Profitable Products') }}</h3>
 			@if($profitableProducts->isEmpty())
-				<p class="text-gray-500 dark:text-gray-400">{{ __('No profitable products found.') }}</p>
+				<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('No profitable products found.') }}</p>
 			@else
-				<div class="overflow-x-auto">
-					<table class="min-w-full text-sm">
+				<div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+					<table class="min-w-full text-xs sm:text-sm">
 						<thead>
 							<tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
 								<th class="py-3 pe-2">{{ __('Product') }}</th>
@@ -416,10 +409,10 @@
 
 		<!-- Low Stock Alerts -->
 		@if($lowStockProducts->isNotEmpty())
-		<div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">{{ __('Low Stock Alerts') }}</h3>
-			<div class="overflow-x-auto">
-				<table class="min-w-full text-sm">
+		<div class="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+			<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">{{ __('Low Stock Alerts') }}</h3>
+			<div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+				<table class="min-w-full text-xs sm:text-sm">
 					<thead>
 						<tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
 							<th class="py-3 pe-2">{{ __('Product') }}</th>
@@ -444,12 +437,12 @@
 		@endif
 
 		<!-- By Country Overview -->
-		<div class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ __('By Country Overview') }}</h3>
-			<p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ __('Breakdown of key metrics by country.') }}</p>
+		<div class="p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm">
+			<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ __('By Country Overview') }}</h3>
+			<p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">{{ __('Breakdown of key metrics by country.') }}</p>
 
-			<div class="overflow-x-auto">
-				<table class="min-w-full text-sm">
+			<div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+				<table class="min-w-full text-xs sm:text-sm">
 					<thead>
 						<tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
 							<th class="py-3 pe-2">{{ __('Country') }}</th>
