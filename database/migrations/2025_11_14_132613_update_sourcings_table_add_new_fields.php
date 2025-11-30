@@ -15,8 +15,12 @@ return new class extends Migration
         // Check if product_id column exists
         $hasProductId = Schema::hasColumn('sourcings', 'product_id');
         $defaultCountryId = DB::table('countries')->value('id');
+        
+        // Check if there's any data to migrate
+        $sourcingsCount = DB::table('sourcings')->count();
 
-        if (!$defaultCountryId) {
+        // Only require countries if there's existing data to migrate
+        if (!$defaultCountryId && $sourcingsCount > 0) {
             throw new \Exception('No countries found in database. Please create at least one country before running this migration.');
         }
 
@@ -33,9 +37,11 @@ return new class extends Migration
                            WHERE s.product_id IS NOT NULL');
 
             // Step 3: Set default country for sourcings without valid country
-            DB::table('sourcings')
-                ->whereNull('temp_country_id')
-                ->update(['temp_country_id' => $defaultCountryId]);
+            if ($defaultCountryId) {
+                DB::table('sourcings')
+                    ->whereNull('temp_country_id')
+                    ->update(['temp_country_id' => $defaultCountryId]);
+            }
 
             // Step 4: Add temporary columns to store product data
             Schema::table('sourcings', function (Blueprint $table) {
@@ -53,24 +59,28 @@ return new class extends Migration
                            WHERE s.product_id IS NOT NULL');
 
             // Set defaults for sourcings without products
+            $updateData = ['temp_product_name' => 'Unknown Product'];
+            if ($defaultCountryId) {
+                $updateData['temp_country_id'] = $defaultCountryId;
+            }
             DB::table('sourcings')
                 ->whereNull('temp_product_name')
-                ->update([
-                    'temp_product_name' => 'Unknown Product',
-                    'temp_country_id' => $defaultCountryId,
-                ]);
+                ->update($updateData);
 
             // Step 6: Drop foreign key and product_id
             Schema::table('sourcings', function (Blueprint $table) {
-                // Check if foreign key exists before dropping
-                $connection = Schema::getConnection();
-                $db = $connection->getDatabaseName();
-                $foreignKeys = DB::select("SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'sourcings' AND COLUMN_NAME = 'product_id' AND REFERENCED_TABLE_NAME IS NOT NULL", [$db]);
-                
-                if (!empty($foreignKeys)) {
-                    $table->dropForeign([$foreignKeys[0]->CONSTRAINT_NAME]);
+                // Try to drop foreign key using standard Laravel naming convention
+                try {
+                    $table->dropForeign(['product_id']);
+                } catch (\Exception $e) {
+                    // Foreign key might not exist or have a different name, that's okay
+                    \Log::info("Could not drop foreign key for product_id: " . $e->getMessage());
                 }
-                $table->dropColumn('product_id');
+                
+                // Drop the column
+                if (Schema::hasColumn('sourcings', 'product_id')) {
+                    $table->dropColumn('product_id');
+                }
             });
         } else {
             // product_id doesn't exist, just add temp columns without copying from products
@@ -82,12 +92,13 @@ return new class extends Migration
             });
 
             // Set defaults for all sourcings
+            $updateData = ['temp_product_name' => 'Unknown Product'];
+            if ($defaultCountryId) {
+                $updateData['temp_country_id'] = $defaultCountryId;
+            }
             DB::table('sourcings')
                 ->whereNull('temp_country_id')
-                ->update([
-                    'temp_country_id' => $defaultCountryId,
-                    'temp_product_name' => 'Unknown Product',
-                ]);
+                ->update($updateData);
         }
 
         // Step 7: Add new columns individually if they don't exist
@@ -188,23 +199,21 @@ return new class extends Migration
             DB::table('sourcings')
                 ->whereNull('country_id')
                 ->update(['country_id' => $defaultCountryId]);
-            
-            DB::table('sourcings')
-                ->whereNull('product_name')
-                ->orWhere('product_name', '')
-                ->update(['product_name' => 'Unknown Product']);
-        } else {
-            // If no default country and we have null country_id, throw error
-            $nullCount = DB::table('sourcings')->whereNull('country_id')->count();
-            if ($nullCount > 0) {
-                throw new \Exception('No countries found in database and some sourcings have no valid country_id. Please create at least one country before running this migration.');
-            }
         }
+        
+        DB::table('sourcings')
+            ->where(function($query) {
+                $query->whereNull('product_name')
+                      ->orWhere('product_name', '');
+            })
+            ->update(['product_name' => 'Unknown Product']);
 
-        // Step 10: Make country_id not nullable and drop temp columns (if they exist)
-        Schema::table('sourcings', function (Blueprint $table) {
-            // Make country_id not nullable
-            $table->unsignedBigInteger('country_id')->nullable(false)->change();
+        // Step 10: Make country_id not nullable (only if we have a default country) and drop temp columns (if they exist)
+        Schema::table('sourcings', function (Blueprint $table) use ($defaultCountryId) {
+            // Make country_id not nullable only if there's data with valid country_id
+            if ($defaultCountryId) {
+                $table->unsignedBigInteger('country_id')->nullable(false)->change();
+            }
             
             // Drop temp columns if they exist
             $tempColumns = [];

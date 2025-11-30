@@ -61,18 +61,21 @@ class RolesAndAdminSeeder extends Seeder
             'active' => true,
         ]);
 
-        // Create a default super admin if none exists
-        if (! User::where('email', 'admin@example.com')->exists()) {
-            $admin = User::create([
+        // Create or update a default super admin
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
                 'name' => 'Super Admin',
-                'email' => 'admin@example.com',
                 'password' => Hash::make('password'),
-            ]);
+            ]
+        );
 
+        // Always ensure the role is assigned
+        if (!$admin->hasRole('superadmin')) {
             $admin->assignRole($superAdminRole);
-
-            // Attach to the default country for convenience
-            $admin->countries()->syncWithoutDetaching([$country->id]);
         }
+
+        // Attach to the default country for convenience
+        $admin->countries()->syncWithoutDetaching([$country->id]);
     }
 }

@@ -42,14 +42,19 @@ Route::get('/', function () {
 	return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', function() {
+Route::get('/dashboard', function(\Illuminate\Http\Request $request) {
+	// Redirect superadmin to admin dashboard
+	if (auth()->user()->hasRole('superadmin')) {
+		return redirect()->route('admin.dashboard');
+	}
+	
 	// Redirect media buyers to their dashboard
 	if (auth()->user()->hasRole('media_buyer')) {
 		return redirect()->route('media-buyer.dashboard');
 	}
 	
 	// Regular users see dashboard
-	return app(DashboardController::class)->index();
+	return app(DashboardController::class)->index($request);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Serve storage files (workaround for Windows symlink issues)
