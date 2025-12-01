@@ -39,98 +39,210 @@
 					</div>
 				</form>
 			</div>
-			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-				<div class="overflow-x-auto">
-					<table class="min-w-full text-sm">
-						<thead>
-							<tr class="text-xs uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-300">
-								<th class="py-3 px-3 text-left whitespace-nowrap sticky left-0 bg-gray-50 dark:bg-gray-900">{{ __('Image') }}</th>
-								<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Name') }}</th>
-								<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Category') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Initial Qty') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Remaining') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Cost Total') }}</th>
-								<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Country') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Delivery %') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Ads Cost') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPL') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPD') }}</th>
-								<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Net Profit') }}</th>
-								<th class="py-3 px-3 text-center whitespace-nowrap sticky right-0 bg-gray-50 dark:bg-gray-900">{{ __('Actions') }}</th>
-							</tr>
-						</thead>
-						<tbody class="text-gray-700 dark:text-gray-200 text-sm divide-y divide-gray-100 dark:divide-gray-700">
-							@foreach($products as $p)
-								@php
-									$deliveryRate = $p->delivery_rate;
-									$bgColor = 'bg-white dark:bg-gray-800';
-									$stickyBg = 'bg-white dark:bg-gray-800';
-									if ($deliveryRate >= 20) {
-										$bgColor = 'bg-green-50 dark:bg-green-900/30';
-										$stickyBg = 'bg-green-50 dark:bg-green-900/30';
-									} elseif ($deliveryRate >= 15 && $deliveryRate <= 19) {
-										$bgColor = 'bg-orange-50 dark:bg-orange-900/30';
-										$stickyBg = 'bg-orange-50 dark:bg-orange-900/30';
-									} elseif ($deliveryRate <= 14) {
-										$bgColor = 'bg-red-50 dark:bg-red-900/30';
-										$stickyBg = 'bg-red-50 dark:bg-red-900/30';
-									}
-								@endphp
-								<tr class="{{ $bgColor }} hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-									<td class="py-3 px-3 sticky left-0 {{ $stickyBg }}">
-										@if($p->image)
-											<img src="{{ \Illuminate\Support\Facades\Storage::url($p->image) }}" alt="{{ $p->name }}" class="h-10 w-10 object-cover rounded-lg">
-										@else
-											<div class="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-												<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-											</div>
-										@endif
-									</td>
-									<td class="py-3 px-3 font-medium whitespace-nowrap">{{ $p->name }}</td>
-									<td class="py-3 px-3 whitespace-nowrap">{{ $p->category?->name ?? '-' }}</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ $p->initial_qty }}</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ $p->remaining_qty }}</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->average_cost, 2) }}</td>
-									<td class="py-3 px-3 whitespace-nowrap">{{ $p->country?->name ?? '-' }}</td>
-									<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($deliveryRate, 2) }}%</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->total_ads_cost, 2) }}</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_lead, 2) }}</td>
-									<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_delivered, 2) }}</td>
-									<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($p->net_profit, 2) }}</td>
-									<td class="py-3 px-3 sticky right-0 {{ $stickyBg }}">
-										<div class="flex items-center justify-center gap-1">
-											<button @click="window.loadStatistics({{ $p->id }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Statistics') }}">
+		<!-- Mobile Card Layout -->
+		<div class="block lg:hidden space-y-3">
+			@foreach($products as $p)
+				@php
+					$deliveryRate = $p->delivery_rate;
+					$cardBorder = 'border-l-4 border-gray-300';
+					if ($deliveryRate >= 20) {
+						$cardBorder = 'border-l-4 border-green-500';
+					} elseif ($deliveryRate >= 15 && $deliveryRate <= 19) {
+						$cardBorder = 'border-l-4 border-orange-500';
+					} elseif ($deliveryRate <= 14) {
+						$cardBorder = 'border-l-4 border-red-500';
+					}
+				@endphp
+				<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm {{ $cardBorder }} overflow-hidden">
+					<!-- Card Header -->
+					<div class="p-4 flex items-start gap-3">
+						@if($p->image)
+							<img src="{{ \Illuminate\Support\Facades\Storage::url($p->image) }}" alt="{{ $p->name }}" class="h-14 w-14 object-cover rounded-lg flex-shrink-0">
+						@else
+							<div class="h-14 w-14 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+								<svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+							</div>
+						@endif
+						<div class="flex-1 min-w-0">
+							<h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $p->name }}</h4>
+							<div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+								<span>{{ $p->category?->name ?? '-' }}</span>
+								<span class="text-gray-300 dark:text-gray-600">•</span>
+								<span>{{ $p->country?->name ?? '-' }}</span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Stats Grid -->
+					<div class="px-4 pb-3 grid grid-cols-3 gap-3">
+						<div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+							<p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Qty') }}</p>
+							<p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $p->remaining_qty }}/{{ $p->initial_qty }}</p>
+						</div>
+						<div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+							<p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Delivery') }}</p>
+							<p class="text-sm font-semibold {{ $deliveryRate >= 20 ? 'text-green-600' : ($deliveryRate >= 15 ? 'text-orange-600' : 'text-red-600') }}">{{ number_format($deliveryRate, 1) }}%</p>
+						</div>
+						<div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+							<p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Profit') }}</p>
+							<p class="text-sm font-semibold {{ $p->net_profit >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($p->net_profit, 2) }}</p>
+						</div>
+					</div>
+					
+					<!-- Expandable Details -->
+					<div x-data="{ expanded: false }">
+						<button @click="expanded = !expanded" class="w-full px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 flex items-center justify-center gap-1 transition-colors">
+							<span x-text="expanded ? '{{ __('Less details') }}' : '{{ __('More details') }}'"></span>
+							<svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': expanded }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+						</button>
+						<div x-show="expanded" x-collapse class="px-4 pb-4 space-y-2 text-sm border-t border-gray-100 dark:border-gray-700">
+							<div class="flex justify-between pt-3">
+								<span class="text-gray-500 dark:text-gray-400">{{ __('Cost Total') }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->average_cost, 2) }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-500 dark:text-gray-400">{{ __('Ads Cost') }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->total_ads_cost, 2) }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-500 dark:text-gray-400">{{ __('CPL') }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->cost_per_lead, 2) }}</span>
+							</div>
+							<div class="flex justify-between">
+								<span class="text-gray-500 dark:text-gray-400">{{ __('CPD') }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->cost_per_delivered, 2) }}</span>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Actions -->
+					<div class="flex items-center justify-around border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-2 py-2">
+						<button @click="window.loadStatistics({{ $p->id }})" class="flex-1 flex flex-col items-center gap-1 p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+							</svg>
+							<span class="text-xs">{{ __('Stats') }}</span>
+						</button>
+						<a href="{{ route('products.edit', $p) }}" class="flex-1 flex flex-col items-center gap-1 p-2 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors touch-manipulation">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+							</svg>
+							<span class="text-xs">{{ __('Edit') }}</span>
+						</a>
+						<a href="{{ route('products.assign-media-buyers', $p) }}" class="flex-1 flex flex-col items-center gap-1 p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors touch-manipulation">
+							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+							</svg>
+							<span class="text-xs">{{ __('Assign') }}</span>
+						</a>
+						<form action="{{ route('products.destroy', $p) }}" method="POST" class="flex-1" onsubmit="return confirm('{{ __('Delete this product?') }}')">
+							@csrf @method('DELETE')
+							<button type="submit" class="w-full flex flex-col items-center gap-1 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors touch-manipulation">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+								</svg>
+								<span class="text-xs">{{ __('Delete') }}</span>
+							</button>
+						</form>
+					</div>
+				</div>
+			@endforeach
+			<div class="mt-4 px-1">{{ $products->links() }}</div>
+		</div>
+
+		<!-- Desktop Table Layout -->
+		<div class="hidden lg:block bg-white dark:bg-gray-800 shadow-sm rounded-xl">
+			<div class="overflow-x-auto">
+				<table class="min-w-full text-sm">
+					<thead>
+						<tr class="text-xs uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-300">
+							<th class="py-3 px-3 text-left whitespace-nowrap sticky left-0 bg-gray-50 dark:bg-gray-900">{{ __('Image') }}</th>
+							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Name') }}</th>
+							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Category') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Initial Qty') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Remaining') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Cost Total') }}</th>
+							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Country') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Delivery %') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Ads Cost') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPL') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPD') }}</th>
+							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Net Profit') }}</th>
+							<th class="py-3 px-3 text-center whitespace-nowrap sticky right-0 bg-gray-50 dark:bg-gray-900">{{ __('Actions') }}</th>
+						</tr>
+					</thead>
+					<tbody class="text-gray-700 dark:text-gray-200 text-sm divide-y divide-gray-100 dark:divide-gray-700">
+						@foreach($products as $p)
+							@php
+								$deliveryRate = $p->delivery_rate;
+								$bgColor = 'bg-white dark:bg-gray-800';
+								$stickyBg = 'bg-white dark:bg-gray-800';
+								if ($deliveryRate >= 20) {
+									$bgColor = 'bg-green-50 dark:bg-green-900/30';
+									$stickyBg = 'bg-green-50 dark:bg-green-900/30';
+								} elseif ($deliveryRate >= 15 && $deliveryRate <= 19) {
+									$bgColor = 'bg-orange-50 dark:bg-orange-900/30';
+									$stickyBg = 'bg-orange-50 dark:bg-orange-900/30';
+								} elseif ($deliveryRate <= 14) {
+									$bgColor = 'bg-red-50 dark:bg-red-900/30';
+									$stickyBg = 'bg-red-50 dark:bg-red-900/30';
+								}
+							@endphp
+							<tr class="{{ $bgColor }} hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+								<td class="py-3 px-3 sticky left-0 {{ $stickyBg }}">
+									@if($p->image)
+										<img src="{{ \Illuminate\Support\Facades\Storage::url($p->image) }}" alt="{{ $p->name }}" class="h-10 w-10 object-cover rounded-lg">
+									@else
+										<div class="h-10 w-10 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+											<svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+										</div>
+									@endif
+								</td>
+								<td class="py-3 px-3 font-medium whitespace-nowrap">{{ $p->name }}</td>
+								<td class="py-3 px-3 whitespace-nowrap">{{ $p->category?->name ?? '-' }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ $p->initial_qty }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ $p->remaining_qty }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->average_cost, 2) }}</td>
+								<td class="py-3 px-3 whitespace-nowrap">{{ $p->country?->name ?? '-' }}</td>
+								<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($deliveryRate, 2) }}%</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->total_ads_cost, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_lead, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_delivered, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($p->net_profit, 2) }}</td>
+								<td class="py-3 px-3 sticky right-0 {{ $stickyBg }}">
+									<div class="flex items-center justify-center gap-1">
+										<button @click="window.loadStatistics({{ $p->id }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Statistics') }}">
+											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+											</svg>
+										</button>
+										<a href="{{ route('products.edit', $p) }}" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Edit') }}">
+											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+											</svg>
+										</a>
+										<a href="{{ route('products.assign-media-buyers', $p) }}" class="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Assign') }}">
+											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+											</svg>
+										</a>
+										<form action="{{ route('products.destroy', $p) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('Delete this product?') }}')">
+											@csrf @method('DELETE')
+											<button type="submit" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Delete') }}">
 												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
 												</svg>
 											</button>
-											<a href="{{ route('products.edit', $p) }}" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Edit') }}">
-												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-												</svg>
-											</a>
-											<a href="{{ route('products.assign-media-buyers', $p) }}" class="p-2 text-green-600 hover:text-green-800 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Assign') }}">
-												<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-												</svg>
-											</a>
-											<form action="{{ route('products.destroy', $p) }}" method="POST" class="inline" onsubmit="return confirm('{{ __('Delete this product?') }}')">
-												@csrf @method('DELETE')
-												<button type="submit" class="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Delete') }}">
-													<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-														<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-													</svg>
-												</button>
-											</form>
-										</div>
-									</td>
-								</tr>
-							@endforeach
-						</tbody>
-					</table>
-				</div>
-				<div class="mt-4 px-3 sm:px-0">{{ $products->links() }}</div>
+										</form>
+									</div>
+								</td>
+							</tr>
+						@endforeach
+					</tbody>
+				</table>
 			</div>
+			<div class="mt-4 px-3 pb-4">{{ $products->links() }}</div>
+		</div>
 		</div>
 	</div>
 

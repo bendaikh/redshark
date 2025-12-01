@@ -371,8 +371,8 @@
 				<!-- Overlay for mobile -->
 				<div @click="sidebarOpen = false" x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 z-20 bg-black/40 md:hidden"></div>
 
-				<!-- Content -->
-				<main class="flex-1 min-h-screen">
+			<!-- Content -->
+			<main class="flex-1 min-h-screen min-w-0 overflow-x-hidden">
 					<!-- Header slot if provided -->
 					@isset($header)
 						<header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
