@@ -156,7 +156,7 @@
 				<table class="min-w-full text-sm">
 					<thead>
 						<tr class="text-xs uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-300">
-							<th class="py-3 px-3 text-left whitespace-nowrap sticky left-0 bg-gray-50 dark:bg-gray-900">{{ __('Image') }}</th>
+							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Image') }}</th>
 							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Name') }}</th>
 							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Category') }}</th>
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Initial Qty') }}</th>
@@ -168,7 +168,7 @@
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPL') }}</th>
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('CPD') }}</th>
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Net Profit') }}</th>
-							<th class="py-3 px-3 text-center whitespace-nowrap sticky right-0 bg-gray-50 dark:bg-gray-900">{{ __('Actions') }}</th>
+							<th class="py-3 px-3 text-center whitespace-nowrap">{{ __('Actions') }}</th>
 						</tr>
 					</thead>
 					<tbody class="text-gray-700 dark:text-gray-200 text-sm divide-y divide-gray-100 dark:divide-gray-700">
@@ -176,20 +176,16 @@
 							@php
 								$deliveryRate = $p->delivery_rate;
 								$bgColor = 'bg-white dark:bg-gray-800';
-								$stickyBg = 'bg-white dark:bg-gray-800';
 								if ($deliveryRate >= 20) {
 									$bgColor = 'bg-green-50 dark:bg-green-900/30';
-									$stickyBg = 'bg-green-50 dark:bg-green-900/30';
 								} elseif ($deliveryRate >= 15 && $deliveryRate <= 19) {
 									$bgColor = 'bg-orange-50 dark:bg-orange-900/30';
-									$stickyBg = 'bg-orange-50 dark:bg-orange-900/30';
 								} elseif ($deliveryRate <= 14) {
 									$bgColor = 'bg-red-50 dark:bg-red-900/30';
-									$stickyBg = 'bg-red-50 dark:bg-red-900/30';
 								}
 							@endphp
 							<tr class="{{ $bgColor }} hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-								<td class="py-3 px-3 sticky left-0 {{ $stickyBg }}">
+								<td class="py-3 px-3">
 									@if($p->image)
 										<img src="{{ \Illuminate\Support\Facades\Storage::url($p->image) }}" alt="{{ $p->name }}" class="h-10 w-10 object-cover rounded-lg">
 									@else
@@ -209,7 +205,7 @@
 								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_lead, 2) }}</td>
 								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_delivered, 2) }}</td>
 								<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($p->net_profit, 2) }}</td>
-								<td class="py-3 px-3 sticky right-0 {{ $stickyBg }}">
+								<td class="py-3 px-3">
 									<div class="flex items-center justify-center gap-1">
 										<button @click="window.loadStatistics({{ $p->id }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Statistics') }}">
 											<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,28 +9,181 @@
 	<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 	<div class="space-y-6">
-		<!-- Filters -->
-		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4">
-			<form method="GET" class="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-[1fr_1fr_auto] sm:gap-3 sm:items-end">
-				<div>
-					<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('From') }}</label>
-					<div class="relative">
-						<input type="date" name="from" value="{{ request('from') }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-					</div>
-				</div>
-				<div>
-					<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('To') }}</label>
-					<div class="relative">
-						<input type="date" name="to" value="{{ request('to') }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-					</div>
-				</div>
-				<div class="sm:col-span-2 md:col-span-1">
-					<button class="w-full sm:w-auto px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors touch-manipulation">
-						{{ __('Apply Filters') }}
+		<!-- Date Filters - Facebook Ads Style -->
+		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4" x-data="dateRangePicker()">
+			<form method="GET" class="flex flex-wrap items-center gap-3">
+				<!-- Date Range Dropdown Button -->
+				<div class="relative">
+					<button type="button" @click="showDropdown = !showDropdown" class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+						<svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+						</svg>
+						<span x-text="selectedLabel">{{ $from && $to ? \Carbon\Carbon::parse($from)->format('M d, Y') . ' - ' . \Carbon\Carbon::parse($to)->format('M d, Y') : __('Select Date Range') }}</span>
+						<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+						</svg>
 					</button>
+
+					<!-- Dropdown Panel -->
+					<div x-show="showDropdown" @click.outside="showDropdown = false" x-transition class="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 flex">
+						<!-- Preset Options -->
+						<div class="w-48 border-r border-gray-200 dark:border-gray-700 py-2">
+							<div class="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ __('Recently used') }}</div>
+							<button type="button" @click="selectPreset('today')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'today'}">{{ __('Today') }}</button>
+							<button type="button" @click="selectPreset('yesterday')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'yesterday'}">{{ __('Yesterday') }}</button>
+							<button type="button" @click="selectPreset('this_month')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'this_month'}">{{ __('This month') }}</button>
+							<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+							<button type="button" @click="selectPreset('last_7_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_7_days'}">{{ __('Last 7 days') }}</button>
+							<button type="button" @click="selectPreset('last_14_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_14_days'}">{{ __('Last 14 days') }}</button>
+							<button type="button" @click="selectPreset('last_28_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_28_days'}">{{ __('Last 28 days') }}</button>
+							<button type="button" @click="selectPreset('last_30_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_30_days'}">{{ __('Last 30 days') }}</button>
+							<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+							<button type="button" @click="selectPreset('this_week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'this_week'}">{{ __('This week') }}</button>
+							<button type="button" @click="selectPreset('last_week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_week'}">{{ __('Last week') }}</button>
+							<button type="button" @click="selectPreset('last_month')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_month'}">{{ __('Last month') }}</button>
+						</div>
+
+						<!-- Calendar and Custom Date Inputs -->
+						<div class="p-4">
+							<div class="flex items-center gap-4 mb-4">
+								<div>
+									<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('From') }}</label>
+									<input type="date" x-model="fromDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+								</div>
+								<div class="text-gray-400">—</div>
+								<div>
+									<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('To') }}</label>
+									<input type="date" x-model="toDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+								</div>
+							</div>
+							<p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ __('Dates are shown in Etc/GMT+0') }}</p>
+							<div class="flex justify-end gap-2">
+								<button type="button" @click="showDropdown = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">{{ __('Cancel') }}</button>
+								<button type="button" @click="applyDateRange()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">{{ __('Update') }}</button>
+							</div>
+						</div>
+					</div>
 				</div>
+
+				<!-- Hidden inputs for form submission -->
+				<input type="hidden" name="from" :value="fromDate">
+				<input type="hidden" name="to" :value="toDate">
+				
+				<!-- Apply button visible outside dropdown -->
+				<button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 active:bg-indigo-800 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors touch-manipulation">
+					{{ __('Apply Filters') }}
+				</button>
+				
+				@if($from || $to)
+					<a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+						{{ __('Clear') }}
+					</a>
+				@endif
 			</form>
 		</div>
+
+		<script>
+			function dateRangePicker() {
+				return {
+					showDropdown: false,
+					fromDate: '{{ $from ?? '' }}',
+					toDate: '{{ $to ?? '' }}',
+					currentPreset: '',
+					selectedLabel: '{{ $from && $to ? \Carbon\Carbon::parse($from)->format("M d, Y") . " - " . \Carbon\Carbon::parse($to)->format("M d, Y") : __("Select Date Range") }}',
+					
+					selectPreset(preset) {
+						const today = new Date();
+						let from, to;
+						
+						switch(preset) {
+							case 'today':
+								from = to = this.formatDate(today);
+								this.selectedLabel = '{{ __("Today") }}';
+								break;
+							case 'yesterday':
+								const yesterday = new Date(today);
+								yesterday.setDate(yesterday.getDate() - 1);
+								from = to = this.formatDate(yesterday);
+								this.selectedLabel = '{{ __("Yesterday") }}';
+								break;
+							case 'this_month':
+								from = this.formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+								to = this.formatDate(today);
+								this.selectedLabel = '{{ __("This month") }}';
+								break;
+							case 'last_7_days':
+								to = this.formatDate(today);
+								const last7 = new Date(today);
+								last7.setDate(last7.getDate() - 6);
+								from = this.formatDate(last7);
+								this.selectedLabel = '{{ __("Last 7 days") }}';
+								break;
+							case 'last_14_days':
+								to = this.formatDate(today);
+								const last14 = new Date(today);
+								last14.setDate(last14.getDate() - 13);
+								from = this.formatDate(last14);
+								this.selectedLabel = '{{ __("Last 14 days") }}';
+								break;
+							case 'last_28_days':
+								to = this.formatDate(today);
+								const last28 = new Date(today);
+								last28.setDate(last28.getDate() - 27);
+								from = this.formatDate(last28);
+								this.selectedLabel = '{{ __("Last 28 days") }}';
+								break;
+							case 'last_30_days':
+								to = this.formatDate(today);
+								const last30 = new Date(today);
+								last30.setDate(last30.getDate() - 29);
+								from = this.formatDate(last30);
+								this.selectedLabel = '{{ __("Last 30 days") }}';
+								break;
+							case 'this_week':
+								const startOfWeek = new Date(today);
+								startOfWeek.setDate(today.getDate() - today.getDay());
+								from = this.formatDate(startOfWeek);
+								to = this.formatDate(today);
+								this.selectedLabel = '{{ __("This week") }}';
+								break;
+							case 'last_week':
+								const lastWeekEnd = new Date(today);
+								lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+								const lastWeekStart = new Date(lastWeekEnd);
+								lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+								from = this.formatDate(lastWeekStart);
+								to = this.formatDate(lastWeekEnd);
+								this.selectedLabel = '{{ __("Last week") }}';
+								break;
+							case 'last_month':
+								const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+								const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+								from = this.formatDate(lastMonthStart);
+								to = this.formatDate(lastMonthEnd);
+								this.selectedLabel = '{{ __("Last month") }}';
+								break;
+						}
+						
+						this.fromDate = from;
+						this.toDate = to;
+						this.currentPreset = preset;
+					},
+					
+					formatDate(date) {
+						return date.toISOString().split('T')[0];
+					},
+					
+					applyDateRange() {
+						if (this.fromDate && this.toDate) {
+							const fromFormatted = new Date(this.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+							const toFormatted = new Date(this.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+							this.selectedLabel = fromFormatted + ' - ' + toFormatted;
+						}
+						this.showDropdown = false;
+					}
+				}
+			}
+		</script>
 
 		<!-- Revenue Trends Section -->
 		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden">
@@ -125,20 +278,28 @@
 
 		<!-- Marketing Performance Section -->
 		<div class="mb-6">
-			<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-				<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
-				<form method="GET" class="w-full sm:w-auto">
-					<!-- Preserve existing filters -->
-					@if($from)
-						<input type="hidden" name="from" value="{{ $from }}">
-					@endif
-					@if($to)
-						<input type="hidden" name="to" value="{{ $to }}">
-					@endif
-					
-					<div class="flex flex-col sm:flex-row sm:items-center gap-2">
-						<label class="text-sm text-gray-600 dark:text-gray-300 hidden sm:block">{{ __('Filter by Product:') }}</label>
-						<select name="product_id" onchange="this.form.submit()" class="w-full sm:w-auto py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4 mb-4">
+				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+					<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
+					<form method="GET" class="flex flex-wrap items-center gap-3">
+						<!-- Preserve main date filters -->
+						@if($from)
+							<input type="hidden" name="from" value="{{ $from }}">
+						@endif
+						@if($to)
+							<input type="hidden" name="to" value="{{ $to }}">
+						@endif
+						
+						<!-- Marketing specific date filters -->
+						<div class="flex items-center gap-2">
+							<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('From:') }}</label>
+							<input type="date" name="marketing_from" value="{{ $marketingFrom ?? '' }}" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+						</div>
+						<div class="flex items-center gap-2">
+							<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('To:') }}</label>
+							<input type="date" name="marketing_to" value="{{ $marketingTo ?? '' }}" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+						</div>
+						<select name="product_id" class="py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 							<option value="">{{ __('All Products') }}</option>
 							@foreach($allProducts as $product)
 								<option value="{{ $product->id }}" {{ $productId == $product->id ? 'selected' : '' }}>
@@ -146,9 +307,13 @@
 								</option>
 							@endforeach
 						</select>
-					</div>
-				</form>
+						<button type="submit" class="px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+							{{ __('Filter') }}
+						</button>
+					</form>
+				</div>
 			</div>
+			
 			@if($selectedProduct)
 				<div class="mb-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 rounded">
 					<p class="text-sm text-indigo-800 dark:text-indigo-300">
@@ -193,6 +358,59 @@
 				</div>
 			</div>
 
+			<!-- Business KPIs - Moved BEFORE Total Ads Spend by Platform -->
+			<div class="mt-6 sm:mt-8">
+				<h4 class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Business KPIs') }}</h4>
+				<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Profits') }}</div>
+								<div class="mt-2 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalProfits, 2) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+							</div>
+						</div>
+					</div>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-indigo-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Initial Quantity') }}</div>
+								<div class="mt-2 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($initialQuantity ?? 0) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-indigo-50 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H8v-2h4v2zm4-4H8v-2h8v2zm0-4H8V7h8v2z"/></svg>
+							</div>
+						</div>
+					</div>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Sold Quantity') }}</div>
+								<div class="mt-2 text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($soldQuantity ?? 0) }}</div>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+							</div>
+						</div>
+					</div>
+					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
+						<div class="flex items-center justify-between">
+							<div>
+								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Sold Rate') }}</div>
+								<div class="mt-2 text-2xl sm:text-3xl font-bold {{ ($soldRate ?? 0) >= 50 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400' }}">{{ number_format($soldRate ?? 0, 1) }}%</div>
+								<p class="text-xs text-gray-400 dark:text-gray-500 mt-1">{{ __('Sold / Initial') }}</p>
+							</div>
+							<div class="h-12 w-12 rounded-md bg-purple-50 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center">
+								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/><path d="M12 8v4l3 3"/></svg>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Total Ads Spend by Platform - Now AFTER Business KPIs -->
 			<div class="mt-6">
 				<h4 class="text-md font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Total Ads Spend by Platform') }}</h4>
 				<div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
@@ -218,57 +436,6 @@
 					</div>
 				</div>
 			</div>
-
-			<!-- Business KPIs relocated under marketing performance -->
-			<div class="mt-6 sm:mt-8">
-				<h4 class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">{{ __('Business KPIs') }}</h4>
-				<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-green-500">
-						<div class="flex items-center justify-between">
-							<div>
-								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Profits') }}</div>
-								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalProfits, 2) }}</div>
-							</div>
-							<div class="h-12 w-12 rounded-md bg-green-50 text-green-600 dark:bg-green-900/40 dark:text-green-300 flex items-center justify-center">
-								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-							</div>
-						</div>
-					</div>
-					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-red-500">
-						<div class="flex items-center justify-between">
-							<div>
-								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Ads Spends') }}</div>
-								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">${{ number_format($totalAdsSpent, 2) }}</div>
-							</div>
-							<div class="h-12 w-12 rounded-md bg-red-50 text-red-600 dark:bg-red-900/40 dark:text-red-300 flex items-center justify-center">
-								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2 1.96V12.5c-1.79-.1-3.33-1.39-3.33-3.4 0-1.93 1.57-3.4 3.33-3.4V4h2.67v1.1c1.71.36 3.16 1.46 3.27 3.4H12.5c-.1-1.05-.82-1.87-2-1.96V11.5c1.79.1 3.33 1.39 3.33 3.4 0 1.93-1.57 3.4-3.33 3.4z"/></svg>
-							</div>
-						</div>
-					</div>
-					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-blue-500">
-						<div class="flex items-center justify-between">
-							<div>
-								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Invoices') }}</div>
-								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalInvoices) }}</div>
-							</div>
-							<div class="h-12 w-12 rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-300 flex items-center justify-center">
-								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 2h8a2 2 0 0 1 2 2v18l-6-3-6 3V4a2 2 0 0 1 2-2z"/></svg>
-							</div>
-						</div>
-					</div>
-					<div class="p-5 bg-white dark:bg-gray-800 rounded-lg shadow-sm border-l-4 border-purple-500">
-						<div class="flex items-center justify-between">
-							<div>
-								<div class="text-sm text-gray-500 dark:text-gray-400">{{ __('Stock Quantity') }}</div>
-								<div class="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">{{ number_format($totalStockQty) }}</div>
-							</div>
-							<div class="h-12 w-12 rounded-md bg-purple-50 text-purple-600 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center">
-								<svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
 		</div>
 
 		<!-- Management Cards -->
@@ -280,6 +447,10 @@
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Total Stock Value') }}</span>
 						<span class="text-sm font-semibold text-gray-900 dark:text-gray-100">${{ number_format($totalStockValue, 2) }}</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Stock Recovery Sold') }}</span>
+						<span class="text-sm font-semibold text-green-600 dark:text-green-400">${{ number_format($stockRecoverySold ?? 0, 2) }}</span>
 					</div>
 					<div class="flex justify-between">
 						<span class="text-sm text-gray-600 dark:text-gray-400">{{ __('Low Stock Items') }}</span>
@@ -633,7 +804,7 @@
 					height: 400, 
 					type: 'line',
 					toolbar: { show: true },
-					zoom: { enabled: true }
+					zoom: { enabled: false }
 				},
 				stroke: { 
 					width: [0, 0, 3, 3],
@@ -691,7 +862,7 @@
 					name: '{{ __('Net Profit') }}',
 					data: profitsData.map(item => parseFloat(item.net_profit) || 0)
 				}],
-				chart: { type: 'area', height: 300, toolbar: { show: false } },
+				chart: { type: 'area', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
 				xaxis: { categories: profitsData.map(item => item.month) },
 				stroke: { curve: 'smooth', width: 2 },
 				colors: ['#10b981'],
@@ -709,7 +880,7 @@
 					name: '{{ __('Ads Spent') }}',
 					data: adsData.map(item => parseFloat(item.spent) || 0)
 				}],
-				chart: { type: 'bar', height: 300, toolbar: { show: false } },
+				chart: { type: 'bar', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
 				xaxis: { categories: adsData.map(item => item.month) },
 				colors: ['#ef4444'],
 				theme: chartTheme,
@@ -726,7 +897,7 @@
 					name: '{{ __('Invoices') }}',
 					data: invoicesData.map(item => parseInt(item.count) || 0)
 				}],
-				chart: { type: 'line', height: 300, toolbar: { show: false } },
+				chart: { type: 'line', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
 				xaxis: { categories: invoicesData.map(item => item.month) },
 				stroke: { curve: 'smooth', width: 2 },
 				colors: ['#3b82f6'],
@@ -746,7 +917,7 @@
 					name: '{{ __('Ads Cost') }}',
 					data: profitsData.map(item => parseFloat(item.ads_cost) || 0)
 				}],
-				chart: { type: 'line', height: 300, toolbar: { show: false } },
+				chart: { type: 'line', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
 				xaxis: { categories: profitsData.map(item => item.month) },
 				stroke: { curve: 'smooth', width: 2 },
 				colors: ['#10b981', '#ef4444'],

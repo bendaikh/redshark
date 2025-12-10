@@ -20,6 +20,9 @@ class GlobalDashboardController extends Controller
 		$from = $request->input('from');
 		$to = $request->input('to');
 		$productId = $request->input('product_id');
+		// Separate date filters for Marketing Performance section
+		$marketingFrom = $request->input('marketing_from', $from);
+		$marketingTo = $request->input('marketing_to', $to);
 		$isGlobal = $countryId === 0;
 
 		// If not global, show only selected country
@@ -29,17 +32,18 @@ class GlobalDashboardController extends Controller
 			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
 			->count();
 		// Calculate ads and marketing stats from pivot table (clone query for reuse)
+		// Uses marketing-specific date filters for Marketing Performance section
 		$adsStatsBaseQuery = DB::table('ads_campaign_product')
 			->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
 			->when($productId, fn($q) => $q->where('ads_campaign_product.product_id', $productId));
 		
-		// Apply date filters if provided
-		if ($from) {
-			$adsStatsBaseQuery->whereDate('ads_campaigns.date_from', '>=', $from);
+		// Apply marketing-specific date filters if provided
+		if ($marketingFrom) {
+			$adsStatsBaseQuery->whereDate('ads_campaigns.date_from', '>=', $marketingFrom);
 		}
-		if ($to) {
-			$adsStatsBaseQuery->whereDate('ads_campaigns.date_to', '<=', $to);
+		if ($marketingTo) {
+			$adsStatsBaseQuery->whereDate('ads_campaigns.date_to', '<=', $marketingTo);
 		}
 
 		$totalAdsSpent = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
@@ -99,6 +103,28 @@ class GlobalDashboardController extends Controller
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
 			->whereColumn('quantity', '<=', 'low_stock_threshold')
 			->get();
+
+		// Business KPIs - Initial Quantity (total from all validated sourcings)
+		$initialQuantity = Sourcing::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->where('validated', true)
+			->sum('quantity');
+
+		// Sold Quantity (total from all invoice items)
+		$soldQuantity = DB::table('invoice_items')
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+			->sum('invoice_items.quantity_sold') ?? 0;
+
+		// Sold Rate (sold quantity / initial quantity) as percentage
+		$soldRate = $initialQuantity > 0 ? ($soldQuantity / $initialQuantity) * 100 : 0;
+
+		// Stock Recovery Sold - The cost value of items sold (quantity_sold × unit_cost)
+		// This shows how much of the Total Stock Value has been sold
+		$stockRecoverySold = DB::table('invoice_items')
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+			->selectRaw('SUM(invoice_items.quantity_sold * invoice_items.unit_cost) as total')
+			->value('total') ?? 0;
 
 		// Sourcing management
 		$totalSourcings = Sourcing::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->count();
@@ -351,9 +377,16 @@ class GlobalDashboardController extends Controller
 			'chartRevenues' => $chartRevenues,
 			'from' => $from,
 			'to' => $to,
+			'marketingFrom' => $marketingFrom,
+			'marketingTo' => $marketingTo,
 			'allProducts' => $allProducts,
 			'productId' => $productId,
 			'selectedProduct' => $selectedProduct,
+			// New Business KPIs
+			'initialQuantity' => $initialQuantity,
+			'soldQuantity' => $soldQuantity,
+			'soldRate' => $soldRate,
+			'stockRecoverySold' => $stockRecoverySold,
 		]);
 	}
 }
