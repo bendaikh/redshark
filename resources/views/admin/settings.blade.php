@@ -14,9 +14,38 @@
 				</div>
 			@endif
 
+			<!-- Company Settings -->
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4 sm:p-6">
-				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Application Settings') }}</h3>
-				<p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Configure your application settings here.') }}</p>
+				<h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ __('Company Settings') }}</h3>
+				<p class="text-sm text-gray-500 dark:text-gray-400 mb-6">{{ __('Configure your company information. The company name will be displayed in the sidebar.') }}</p>
+				
+				<form method="POST" action="{{ route('admin.settings.company.update') }}" class="space-y-4">
+					@csrf
+					@method('PUT')
+					<div>
+						<label for="company_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+							{{ __('Company Name') }} <span class="text-red-500">*</span>
+						</label>
+						<input 
+							type="text" 
+							name="company_name" 
+							id="company_name"
+							value="{{ old('company_name', $companyName ?? 'Admin') }}"
+							required
+							class="w-full sm:w-96 py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+							placeholder="{{ __('Enter your company name') }}"
+						>
+						@error('company_name')
+							<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+						@enderror
+					</div>
+
+					<div class="pt-2">
+						<button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 active:bg-emerald-800 transition-colors touch-manipulation">
+							{{ __('Save Company Settings') }}
+						</button>
+					</div>
+				</form>
 			</div>
 
 			<!-- Delivery Fees Settings -->

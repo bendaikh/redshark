@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\DeliveryFee;
+use App\Models\Setting;
 
 class SettingsController extends Controller
 {
@@ -14,8 +15,23 @@ class SettingsController extends Controller
     {
         $countries = \App\Models\Country::orderBy('name')->paginate(10);
         $deliveryFees = DeliveryFee::orderBy('created_at', 'desc')->get();
+        $companyName = Setting::get('company_name', 'Admin');
         
-        return view('admin.settings', compact('countries', 'deliveryFees'));
+        return view('admin.settings', compact('countries', 'deliveryFees', 'companyName'));
+    }
+
+    /**
+     * Update company settings.
+     */
+    public function updateCompany(Request $request)
+    {
+        $request->validate([
+            'company_name' => 'required|string|max:255',
+        ]);
+
+        Setting::set('company_name', $request->input('company_name'));
+
+        return redirect()->route('admin.settings')->with('status', __('Company settings updated successfully.'));
     }
 
     /**

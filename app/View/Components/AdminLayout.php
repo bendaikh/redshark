@@ -4,6 +4,7 @@ namespace App\View\Components;
 
 use Illuminate\View\Component;
 use Illuminate\View\View;
+use App\Models\Setting;
 
 class AdminLayout extends Component
 {
@@ -12,7 +13,11 @@ class AdminLayout extends Component
 	 */
 	public function render(): View
 	{
-		return view('layouts.admin');
+		$companyName = Setting::get('company_name', 'Admin');
+		
+		return view('layouts.admin', [
+			'companyName' => $companyName,
+		]);
 	}
 }
 

@@ -81,6 +81,7 @@ Route::middleware(['auth', 'role:superadmin'])
 
 		// Settings
 		Route::get('/settings', [SettingsController::class, 'index'])->name('admin.settings');
+		Route::put('/settings/company', [SettingsController::class, 'updateCompany'])->name('admin.settings.company.update');
 		
 		// Delivery Fees
 		Route::post('/settings/delivery-fees', [SettingsController::class, 'storeDeliveryFee'])->name('admin.settings.delivery-fees.store');

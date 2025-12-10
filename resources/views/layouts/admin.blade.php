@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<meta name="csrf-token" content="{{ csrf_token() }}">
 
-		<title>{{ config('app.name', 'Laravel') }} — {{ __('Admin') }}</title>
+		<title>{{ config('app.name', 'Laravel') }} — {{ $companyName ?? __('Admin') }}</title>
 
 		<!-- Fonts -->
 		<link rel="preconnect" href="https://fonts.bunny.net">
@@ -137,7 +137,7 @@
 							<svg class="h-7 w-7 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
 								<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
 							</svg>
-							<span class="text-base font-bold text-gray-900 dark:text-white">{{ __('Admin') }}</span>
+							<span class="text-base font-bold text-gray-900 dark:text-white">{{ $companyName ?? __('Admin') }}</span>
 						</div>
 					</div>
 					<div class="flex items-center gap-1">
@@ -218,7 +218,7 @@
 									<svg class="h-7 w-7 text-emerald-300 shrink-0 group-hover:text-emerald-200 transition-colors" viewBox="0 0 24 24" fill="currentColor">
 										<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.73zM12 3.84 18.74 8 12 12.16 5.26 8zm-7 6.32 6 3.6v6.4l-6-3.43zm8 10v-6.4l6-3.6v6.57z"/>
 									</svg>
-									<span class="text-lg font-bold text-white whitespace-nowrap group-hover:text-emerald-200 transition-colors" x-show="!sidebarCollapsed" x-transition>{{ __('Admin') }}</span>
+									<span class="text-lg font-bold text-white whitespace-nowrap group-hover:text-emerald-200 transition-colors" x-show="!sidebarCollapsed" x-transition>{{ $companyName ?? __('Admin') }}</span>
 								</a>
 							</div>
 
