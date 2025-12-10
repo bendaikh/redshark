@@ -24,7 +24,7 @@
 
 					<div>
 						<label class="block text-sm text-gray-600 dark:text-gray-300">{{ __('Country') }}</label>
-						<select name="country_id" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
+						<select name="country_id" id="countrySelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700" required>
 							@foreach($countries as $c)
 								<option value="{{ $c->id }}" {{ ($currentCountry?->id === $c->id) ? 'selected' : '' }}>{{ $c->name }}</option>
 							@endforeach
@@ -36,10 +36,11 @@
 						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">{{ __('Select Products') }}</label>
 					<select id="productSelect" class="mt-1 w-full rounded border-gray-300 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
 						<option value="">{{ __('Select a product to add') }}</option>
-						@foreach($products as $product)
-							<option value="{{ $product->id }}" data-name="{{ $product->name }}" data-cost="{{ $product->average_cost }}">{{ $product->name }}</option>
-						@endforeach
+						<!-- Products will be populated by JavaScript based on selected country -->
 					</select>
+					<p id="noProductsForCountry" class="mt-2 text-sm text-amber-600 dark:text-amber-400 hidden">
+						{{ __('No products available for this country.') }}
+					</p>
 						@error('products')
 							<p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
 						@enderror
@@ -66,10 +67,59 @@
 	</div>
 
 	<script>
-		const products = @json($products);
+		const allProducts = @json($products);
 		const deliveryFees = @json($deliveryFees);
 		let productRowIndex = 0;
 		const addedProductIds = new Set();
+
+		// Filter products by country
+		function filterProductsByCountry(countryId) {
+			const productSelect = document.getElementById('productSelect');
+			const noProductsMsg = document.getElementById('noProductsForCountry');
+			
+			// Clear current options except the first one
+			productSelect.innerHTML = '<option value="">{{ __("Select a product to add") }}</option>';
+			
+			// Filter products by country_id
+			const filteredProducts = allProducts.filter(p => p.country_id == countryId);
+			
+			// Show/hide no products message
+			if (filteredProducts.length === 0) {
+				noProductsMsg.classList.remove('hidden');
+			} else {
+				noProductsMsg.classList.add('hidden');
+			}
+			
+			// Add filtered products to select
+			filteredProducts.forEach(product => {
+				// Skip if already added
+				if (addedProductIds.has(product.id)) return;
+				
+				const option = document.createElement('option');
+				option.value = product.id;
+				option.setAttribute('data-name', product.name);
+				option.setAttribute('data-cost', product.average_cost || 0);
+				option.textContent = product.name;
+				productSelect.appendChild(option);
+			});
+		}
+
+		// Initialize products filter on page load
+		document.addEventListener('DOMContentLoaded', function() {
+			const countrySelect = document.getElementById('countrySelect');
+			filterProductsByCountry(countrySelect.value);
+		});
+
+		// Filter products when country changes
+		document.getElementById('countrySelect').addEventListener('change', function() {
+			// Clear added products when country changes
+			const container = document.getElementById('productsContainer');
+			container.innerHTML = '';
+			addedProductIds.clear();
+			document.getElementById('noProductsMessage').style.display = 'block';
+			
+			filterProductsByCountry(this.value);
+		});
 
 		document.getElementById('productSelect').addEventListener('change', function() {
 			const productId = parseInt(this.value);
@@ -80,6 +130,9 @@
 				addProductCard(productId, productName, productCost);
 				addedProductIds.add(productId);
 				this.value = ''; // Reset select
+				
+				// Remove the added product from the dropdown
+				selectedOption.remove();
 			}
 		});
 

@@ -81,9 +81,6 @@
 										{{ __('Cost Per Delivered') }}
 									</th>
 									<th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-										{{ __('Net Profit') }}
-									</th>
-									<th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
 										{{ __('Delivery Rate') }}
 									</th>
 								</tr>
@@ -122,12 +119,6 @@
 										
 										// Get delivery rate from product (this is global)
 										$deliveryRate = $product->delivery_rate ?? 0;
-										
-										// Calculate Net Profit
-										// Net Profit = Total Amount - My Ads Cost
-										// For media buyer, we use the Cost Total assigned by admin minus their ads cost
-										$costTotal = $product->pivot->cost_total ?? 0;
-										$myNetProfit = $costTotal - $myAdsCostTotal;
 									@endphp
 									<tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
 										<td class="px-3 py-3 whitespace-nowrap">
@@ -184,11 +175,6 @@
 										<td class="px-3 py-3 whitespace-nowrap">
 											<div class="text-gray-900 dark:text-gray-100">
 												{{ number_format($myCostPerDelivered, 2) }}
-											</div>
-										</td>
-										<td class="px-3 py-3 whitespace-nowrap">
-											<div class="font-semibold {{ $myNetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-												{{ number_format($myNetProfit, 2) }}
 											</div>
 										</td>
 										<td class="px-3 py-3 whitespace-nowrap">
