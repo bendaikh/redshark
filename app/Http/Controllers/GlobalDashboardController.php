@@ -62,12 +62,21 @@ class GlobalDashboardController extends Controller
 		return $product->quantity * $product->average_cost;
 	});
 
-		// Marketing KPIs
-		$ordersQuery = DB::table('invoice_items')
+		// Accounting orders - uses global date filters for Accounting Balance section
+		$accountingOrdersQuery = DB::table('invoice_items')
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
 			->when($from, fn($q) => $q->whereDate('invoices.date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to))
+			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to));
+		$accountingOrders = (clone $accountingOrdersQuery)->sum('invoice_items.total_orders') ?? 0;
+
+		// Marketing KPIs
+		// Uses marketing-specific date filters for Marketing Performance section
+		$ordersQuery = DB::table('invoice_items')
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+			->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
+			->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
 			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId));
 
 		$totalOrders = (clone $ordersQuery)->sum('invoice_items.total_orders') ?? 0;
@@ -388,6 +397,7 @@ class GlobalDashboardController extends Controller
 			'totalAdsSpent' => $totalAdsSpent,
 			'totalLeads' => $totalLeads,
 			'totalOrders' => $totalOrders,
+			'accountingOrders' => $accountingOrders,
 			'costPerLead' => $costPerLead,
 			'costPerDelivered' => $costPerDelivered,
 			'deliveryRate' => $deliveryRate,

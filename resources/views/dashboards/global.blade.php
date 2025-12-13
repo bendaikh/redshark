@@ -293,7 +293,7 @@
 							</span>
 						</h3>
 						<p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-							{{ number_format($totalOrders ?? 0) }} {{ __('ORDERS') }}
+							{{ number_format($accountingOrders ?? 0) }} {{ __('ORDERS') }}
 						</p>
 						@if(!$from && !$to)
 							<p class="text-xs text-orange-600 dark:text-orange-400 mt-1">
@@ -371,11 +371,11 @@
 		</div>
 
 		<!-- Marketing Performance Section -->
-		<div class="mb-6" x-data="marketingDatePicker()">
-			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4 mb-4">
-				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+		<div class="mb-6 overflow-visible" x-data="marketingDatePicker()">
+			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4 mb-4 overflow-visible">
+				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 overflow-visible">
 					<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
-					<form method="GET" class="flex flex-wrap items-center gap-3">
+					<form method="GET" class="flex flex-wrap items-center gap-3 overflow-visible">
 						<!-- Preserve main date filters -->
 						@if($from)
 							<input type="hidden" name="from" value="{{ $from }}">
@@ -385,7 +385,7 @@
 						@endif
 						
 						<!-- Marketing Date Range Dropdown Button -->
-						<div class="relative">
+						<div class="relative overflow-visible">
 							<button type="button" @click="showDropdown = !showDropdown" class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
 								<svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -396,8 +396,8 @@
 								</svg>
 							</button>
 
-							<!-- Dropdown Panel -->
-							<div x-show="showDropdown" @click.outside="showDropdown = false" x-transition class="absolute top-full right-0 lg:left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 flex">
+							<!-- Dropdown Panel - always position from right edge so it expands leftward -->
+							<div x-show="showDropdown" @click.outside="showDropdown = false" x-transition class="absolute top-full mt-2 right-0 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col sm:flex-row">
 								<!-- Preset Options -->
 								<div class="w-48 border-r border-gray-200 dark:border-gray-700 py-2">
 									<div class="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ __('Quick select') }}</div>
