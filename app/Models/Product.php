@@ -22,6 +22,10 @@ class Product extends Model
 		'cost' => 'decimal:2',
 	];
 
+	protected $appends = [
+		'average_cost',
+	];
+
 	public function supplier()
 	{
 		return $this->belongsTo(Supplier::class);

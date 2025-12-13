@@ -87,10 +87,32 @@ class GlobalDashboardController extends Controller
 		$selectedProduct = $productId ? Product::find($productId) : null;
 
 		// Calculate total profits (sum of all products' net_profit)
-		$products = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))->get();
-		$totalProfits = $products->sum(function($product) {
-			return $product->net_profit;
-		});
+		// Uses marketing-specific date filters when provided
+		$productsQuery = Product::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
+			->when($productId, fn($q) => $q->where('id', $productId));
+		$products = $productsQuery->get();
+		
+		// Calculate filtered total profits based on marketing date range
+		if ($marketingFrom || $marketingTo) {
+			// When filtering by marketing dates, calculate profit from invoice items in that range
+			$totalProfits = DB::table('invoice_items')
+				->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+				->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id')
+				->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+				->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
+				->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
+				->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId))
+				->selectRaw('SUM(invoice_items.revenue - (invoice_items.total_orders * COALESCE(delivery_fees.fee_per_unit, 0)) - (invoice_items.quantity_sold * invoice_items.unit_cost)) as total')
+				->value('total') ?? 0;
+			
+			// Subtract ads cost in the date range
+			$adsInRange = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?? 0;
+			$totalProfits = $totalProfits - $adsInRange;
+		} else {
+			$totalProfits = $products->sum(function($product) {
+				return $product->net_profit;
+			});
+		}
 
 		// Get profitable products (net_profit > 0)
 		$profitableProducts = $products->filter(function($product) {
@@ -105,14 +127,22 @@ class GlobalDashboardController extends Controller
 			->get();
 
 		// Business KPIs - Initial Quantity (total from all validated sourcings)
+		// Uses marketing-specific date filters to match Marketing Performance section
 		$initialQuantity = Sourcing::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
 			->where('validated', true)
+			->when($marketingFrom, fn($q) => $q->whereDate('created_at', '>=', $marketingFrom))
+			->when($marketingTo, fn($q) => $q->whereDate('created_at', '<=', $marketingTo))
+			->when($productId, fn($q) => $q->where('product_id', $productId))
 			->sum('quantity');
 
 		// Sold Quantity (total from all invoice items)
+		// Uses marketing-specific date filters to match Marketing Performance section
 		$soldQuantity = DB::table('invoice_items')
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
+			->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
+			->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
+			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId))
 			->sum('invoice_items.quantity_sold') ?? 0;
 
 		// Sold Rate (sold quantity / initial quantity) as percentage

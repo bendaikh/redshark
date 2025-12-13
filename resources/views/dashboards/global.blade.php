@@ -29,31 +29,31 @@
 						<!-- Preset Options -->
 						<div class="w-48 border-r border-gray-200 dark:border-gray-700 py-2">
 							<div class="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ __('Recently used') }}</div>
-							<button type="button" @click="selectPreset('today')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'today'}">{{ __('Today') }}</button>
-							<button type="button" @click="selectPreset('yesterday')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'yesterday'}">{{ __('Yesterday') }}</button>
-							<button type="button" @click="selectPreset('this_month')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'this_month'}">{{ __('This month') }}</button>
+							<button type="button" @click="selectPreset('today')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'today'}">{{ __('Today') }}</button>
+							<button type="button" @click="selectPreset('yesterday')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'yesterday'}">{{ __('Yesterday') }}</button>
+							<button type="button" @click="selectPreset('this_month')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'this_month'}">{{ __('This month') }}</button>
 							<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-							<button type="button" @click="selectPreset('last_7_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_7_days'}">{{ __('Last 7 days') }}</button>
-							<button type="button" @click="selectPreset('last_14_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_14_days'}">{{ __('Last 14 days') }}</button>
-							<button type="button" @click="selectPreset('last_28_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_28_days'}">{{ __('Last 28 days') }}</button>
-							<button type="button" @click="selectPreset('last_30_days')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_30_days'}">{{ __('Last 30 days') }}</button>
+							<button type="button" @click="selectPreset('last_7_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_7_days'}">{{ __('Last 7 days') }}</button>
+							<button type="button" @click="selectPreset('last_14_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_14_days'}">{{ __('Last 14 days') }}</button>
+							<button type="button" @click="selectPreset('last_28_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_28_days'}">{{ __('Last 28 days') }}</button>
+							<button type="button" @click="selectPreset('last_30_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_30_days'}">{{ __('Last 30 days') }}</button>
 							<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-							<button type="button" @click="selectPreset('this_week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'this_week'}">{{ __('This week') }}</button>
-							<button type="button" @click="selectPreset('last_week')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_week'}">{{ __('Last week') }}</button>
-							<button type="button" @click="selectPreset('last_month')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400': currentPreset === 'last_month'}">{{ __('Last month') }}</button>
+							<button type="button" @click="selectPreset('this_week')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'this_week'}">{{ __('This week') }}</button>
+							<button type="button" @click="selectPreset('last_week')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_week'}">{{ __('Last week') }}</button>
+							<button type="button" @click="selectPreset('last_month')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_month'}">{{ __('Last month') }}</button>
 						</div>
 
 						<!-- Calendar and Custom Date Inputs -->
-						<div class="p-4">
+						<div class="p-4 bg-white dark:bg-gray-800">
 							<div class="flex items-center gap-4 mb-4">
 								<div>
 									<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('From') }}</label>
-									<input type="date" x-model="fromDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+									<input type="date" x-model="fromDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
 								</div>
-								<div class="text-gray-400">—</div>
+								<div class="text-gray-400 dark:text-gray-500">—</div>
 								<div>
 									<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('To') }}</label>
-									<input type="date" x-model="toDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+									<input type="date" x-model="toDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
 								</div>
 							</div>
 							<p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ __('Dates are shown in Etc/GMT+0') }}</p>
@@ -173,17 +173,111 @@
 						return date.toISOString().split('T')[0];
 					},
 					
-					applyDateRange() {
-						if (this.fromDate && this.toDate) {
-							const fromFormatted = new Date(this.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-							const toFormatted = new Date(this.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-							this.selectedLabel = fromFormatted + ' - ' + toFormatted;
-						}
-						this.showDropdown = false;
+				applyDateRange() {
+					if (this.fromDate && this.toDate) {
+						const fromFormatted = new Date(this.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+						const toFormatted = new Date(this.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+						this.selectedLabel = fromFormatted + ' - ' + toFormatted;
 					}
+					this.showDropdown = false;
 				}
 			}
-		</script>
+		}
+
+		function marketingDatePicker() {
+			return {
+				showDropdown: false,
+				fromDate: '{{ $marketingFrom ?? '' }}',
+				toDate: '{{ $marketingTo ?? '' }}',
+				currentPreset: '',
+				selectedLabel: '{{ $marketingFrom && $marketingTo ? \Carbon\Carbon::parse($marketingFrom)->format("M d, Y") . " - " . \Carbon\Carbon::parse($marketingTo)->format("M d, Y") : __("Select Date Range") }}',
+				
+				selectPreset(preset) {
+					const today = new Date();
+					let from, to;
+					
+					switch(preset) {
+						case 'today':
+							from = to = this.formatDate(today);
+							this.selectedLabel = '{{ __("Today") }}';
+							break;
+						case 'yesterday':
+							const yesterday = new Date(today);
+							yesterday.setDate(yesterday.getDate() - 1);
+							from = to = this.formatDate(yesterday);
+							this.selectedLabel = '{{ __("Yesterday") }}';
+							break;
+						case 'this_month':
+							from = this.formatDate(new Date(today.getFullYear(), today.getMonth(), 1));
+							to = this.formatDate(today);
+							this.selectedLabel = '{{ __("This month") }}';
+							break;
+						case 'last_7_days':
+							to = this.formatDate(today);
+							const last7 = new Date(today);
+							last7.setDate(last7.getDate() - 6);
+							from = this.formatDate(last7);
+							this.selectedLabel = '{{ __("Last 7 days") }}';
+							break;
+						case 'last_14_days':
+							to = this.formatDate(today);
+							const last14 = new Date(today);
+							last14.setDate(last14.getDate() - 13);
+							from = this.formatDate(last14);
+							this.selectedLabel = '{{ __("Last 14 days") }}';
+							break;
+						case 'last_30_days':
+							to = this.formatDate(today);
+							const last30 = new Date(today);
+							last30.setDate(last30.getDate() - 29);
+							from = this.formatDate(last30);
+							this.selectedLabel = '{{ __("Last 30 days") }}';
+							break;
+						case 'this_week':
+							const startOfWeek = new Date(today);
+							startOfWeek.setDate(today.getDate() - today.getDay());
+							from = this.formatDate(startOfWeek);
+							to = this.formatDate(today);
+							this.selectedLabel = '{{ __("This week") }}';
+							break;
+						case 'last_week':
+							const lastWeekEnd = new Date(today);
+							lastWeekEnd.setDate(today.getDate() - today.getDay() - 1);
+							const lastWeekStart = new Date(lastWeekEnd);
+							lastWeekStart.setDate(lastWeekEnd.getDate() - 6);
+							from = this.formatDate(lastWeekStart);
+							to = this.formatDate(lastWeekEnd);
+							this.selectedLabel = '{{ __("Last week") }}';
+							break;
+						case 'last_month':
+							const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+							const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+							from = this.formatDate(lastMonthStart);
+							to = this.formatDate(lastMonthEnd);
+							this.selectedLabel = '{{ __("Last month") }}';
+							break;
+					}
+					
+					this.fromDate = from;
+					this.toDate = to;
+					this.currentPreset = preset;
+				},
+				
+				formatDate(date) {
+					return date.toISOString().split('T')[0];
+				},
+				
+				applyDateRange() {
+					if (this.fromDate && this.toDate) {
+						const fromFormatted = new Date(this.fromDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+						const toFormatted = new Date(this.toDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+						this.selectedLabel = fromFormatted + ' - ' + toFormatted;
+					}
+					this.showDropdown = false;
+				}
+			}
+		}
+	</script>
 
 		<!-- Revenue Trends Section -->
 		<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden">
@@ -277,7 +371,7 @@
 		</div>
 
 		<!-- Marketing Performance Section -->
-		<div class="mb-6">
+		<div class="mb-6" x-data="marketingDatePicker()">
 			<div class="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-4 mb-4">
 				<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 					<h3 class="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Marketing Performance') }}</h3>
@@ -290,15 +384,62 @@
 							<input type="hidden" name="to" value="{{ $to }}">
 						@endif
 						
-						<!-- Marketing specific date filters -->
-						<div class="flex items-center gap-2">
-							<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('From:') }}</label>
-							<input type="date" name="marketing_from" value="{{ $marketingFrom ?? '' }}" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+						<!-- Marketing Date Range Dropdown Button -->
+						<div class="relative">
+							<button type="button" @click="showDropdown = !showDropdown" class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+								<svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+								</svg>
+								<span x-text="selectedLabel">{{ $marketingFrom && $marketingTo ? \Carbon\Carbon::parse($marketingFrom)->format('M d, Y') . ' - ' . \Carbon\Carbon::parse($marketingTo)->format('M d, Y') : __('Select Date Range') }}</span>
+								<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>
+							</button>
+
+							<!-- Dropdown Panel -->
+							<div x-show="showDropdown" @click.outside="showDropdown = false" x-transition class="absolute top-full right-0 lg:left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 z-50 flex">
+								<!-- Preset Options -->
+								<div class="w-48 border-r border-gray-200 dark:border-gray-700 py-2">
+									<div class="px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{{ __('Quick select') }}</div>
+									<button type="button" @click="selectPreset('today')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'today'}">{{ __('Today') }}</button>
+									<button type="button" @click="selectPreset('yesterday')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'yesterday'}">{{ __('Yesterday') }}</button>
+									<button type="button" @click="selectPreset('this_month')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'this_month'}">{{ __('This month') }}</button>
+									<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+									<button type="button" @click="selectPreset('last_7_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_7_days'}">{{ __('Last 7 days') }}</button>
+									<button type="button" @click="selectPreset('last_14_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_14_days'}">{{ __('Last 14 days') }}</button>
+									<button type="button" @click="selectPreset('last_30_days')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_30_days'}">{{ __('Last 30 days') }}</button>
+									<div class="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+									<button type="button" @click="selectPreset('this_week')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'this_week'}">{{ __('This week') }}</button>
+									<button type="button" @click="selectPreset('last_week')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_week'}">{{ __('Last week') }}</button>
+									<button type="button" @click="selectPreset('last_month')" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700" :class="{'bg-indigo-50 dark:bg-indigo-900/30 !text-indigo-600 dark:!text-indigo-400': currentPreset === 'last_month'}">{{ __('Last month') }}</button>
+								</div>
+
+								<!-- Custom Date Inputs -->
+								<div class="p-4 bg-white dark:bg-gray-800">
+									<div class="flex items-center gap-4 mb-4">
+										<div>
+											<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('From') }}</label>
+											<input type="date" x-model="fromDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
+										</div>
+										<div class="text-gray-400 dark:text-gray-500">—</div>
+										<div>
+											<label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('To') }}</label>
+											<input type="date" x-model="toDate" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
+										</div>
+									</div>
+									<p class="text-xs text-gray-500 dark:text-gray-400 mb-4">{{ __('Dates are shown in Etc/GMT+0') }}</p>
+									<div class="flex justify-end gap-2">
+										<button type="button" @click="showDropdown = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">{{ __('Cancel') }}</button>
+										<button type="button" @click="applyDateRange()" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors">{{ __('Update') }}</button>
+									</div>
+								</div>
+							</div>
 						</div>
-						<div class="flex items-center gap-2">
-							<label class="text-sm text-gray-600 dark:text-gray-300">{{ __('To:') }}</label>
-							<input type="date" name="marketing_to" value="{{ $marketingTo ?? '' }}" class="py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-						</div>
+
+						<!-- Hidden inputs for form submission -->
+						<input type="hidden" name="marketing_from" :value="fromDate">
+						<input type="hidden" name="marketing_to" :value="toDate">
+						
 						<select name="product_id" class="py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
 							<option value="">{{ __('All Products') }}</option>
 							@foreach($allProducts as $product)
