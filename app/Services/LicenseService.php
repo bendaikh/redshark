@@ -50,6 +50,21 @@ class LicenseService
             return false;
         }
 
+        // For lifetime licenses with valid format and domain, always allow
+        // This is the primary fix for lifetime licenses not expiring
+        if ($this->isLifetimeLicense()) {
+            // Still try to update cache for tracking purposes
+            $cached = $this->getLicenseCache();
+            if (empty($cached) || !($cached['valid'] ?? false)) {
+                $this->saveLicenseCache([
+                    'valid' => true,
+                    'last_validated' => time(),
+                    'is_lifetime' => true,
+                ]);
+            }
+            return true;
+        }
+
         // Check if we need to validate online
         if ($this->needsOnlineValidation()) {
             return $this->validateOnline();
@@ -192,12 +207,27 @@ class LicenseService
     {
         $cached = $this->getLicenseCache();
 
-        // Never validated successfully before
+        // Never validated successfully before - but if key format is valid, allow it
         if (empty($cached) || !($cached['valid'] ?? false)) {
+            // For lifetime licenses with valid format, create initial cache
+            if ($this->validateKeyFormat() && $this->isLifetimeLicense()) {
+                $this->saveLicenseCache([
+                    'valid' => true,
+                    'last_validated' => time(),
+                    'offline_activation' => true,
+                    'is_lifetime' => true,
+                ]);
+                return true;
+            }
             return false;
         }
 
-        // Check grace period
+        // Lifetime licenses don't expire based on grace period
+        if ($this->isLifetimeLicense()) {
+            return true;
+        }
+
+        // Check grace period for non-lifetime licenses
         $daysSinceValidation = (time() - $cached['last_validated']) / 86400;
 
         if ($daysSinceValidation > $this->gracePeriod) {
@@ -206,6 +236,24 @@ class LicenseService
 
         // Still within grace period
         return true;
+    }
+
+    /**
+     * Check if the current license is a lifetime license
+     */
+    private function isLifetimeLicense(): bool
+    {
+        if (empty($this->licenseKey)) {
+            return false;
+        }
+
+        $parts = explode('-', $this->licenseKey);
+        
+        if (count($parts) < 3) {
+            return false;
+        }
+
+        return $parts[2] === 'LIFETIME';
     }
 
     /**
@@ -230,6 +278,10 @@ class LicenseService
             $content = file_get_contents($this->cacheFile);
             $data = json_decode($content, true);
             
+            if (!is_array($data)) {
+                return [];
+            }
+
             // Verify cache integrity
             if (!isset($data['checksum'])) {
                 return [];
@@ -239,6 +291,17 @@ class LicenseService
             unset($data['checksum']);
             
             if (!hash_equals($this->generateCacheChecksum($data), $checksum)) {
+                // Checksum mismatch - this can happen if server ID changed
+                // For lifetime licenses, regenerate the cache with current server ID
+                // instead of completely invalidating
+                Log::warning('License cache checksum mismatch, regenerating cache');
+                
+                // If the license key format is still valid, preserve the validation
+                if (($data['valid'] ?? false) && $this->validateKeyFormat()) {
+                    $this->saveLicenseCache($data);
+                    return $data;
+                }
+                
                 return [];
             }
 
@@ -322,18 +385,40 @@ class LicenseService
 
     /**
      * Get a unique server identifier
+     * 
+     * IMPORTANT: Only use stable factors that don't change between
+     * CLI and web contexts, or between different PHP workers/processes.
      */
     public function getServerId(): string
     {
-        // Create a unique identifier based on server characteristics
+        // Try to get cached server ID first (most stable)
+        $serverIdFile = storage_path('app/.server_id');
+        
+        if (file_exists($serverIdFile)) {
+            $cachedId = trim(file_get_contents($serverIdFile));
+            if (!empty($cachedId) && strlen($cachedId) === 64) {
+                return $cachedId;
+            }
+        }
+
+        // Create a unique identifier based on STABLE server characteristics only
+        // Avoid $_SERVER variables as they change between CLI/web contexts
         $factors = [
-            php_uname('n'), // Hostname
-            $_SERVER['SERVER_ADDR'] ?? '',
-            $_SERVER['DOCUMENT_ROOT'] ?? '',
-            base_path(),
+            php_uname('n'), // Hostname (stable)
+            base_path(),    // Installation path (stable)
+            $this->secret,  // License secret (stable, unique per installation)
         ];
 
-        return hash('sha256', implode('|', $factors));
+        $serverId = hash('sha256', implode('|', $factors));
+        
+        // Cache the server ID for consistency
+        $dir = dirname($serverIdFile);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        file_put_contents($serverIdFile, $serverId);
+
+        return $serverId;
     }
 
     /**

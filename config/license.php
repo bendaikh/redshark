@@ -42,9 +42,10 @@ return [
     |
     | If the license server is unreachable, the application will continue
     | to work for this many days before requiring online validation.
+    | Default is 365 days (1 year) to support offline/lifetime licenses.
     |
     */
-    'grace_period' => env('LICENSE_GRACE_PERIOD', 7),
+    'grace_period' => env('LICENSE_GRACE_PERIOD', 365),
 
     /*
     |--------------------------------------------------------------------------
