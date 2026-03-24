@@ -161,6 +161,121 @@ class Product extends Model
 	}
 
 	/**
+	 * Get total ads cost filtered by date range
+	 */
+	public function getFilteredAdsCost($dateFrom = null, $dateTo = null)
+	{
+		$query = $this->adsCampaigns();
+		if ($dateFrom) {
+			$query->whereDate('ads_campaigns.date_from', '>=', $dateFrom);
+		}
+		if ($dateTo) {
+			$query->whereDate('ads_campaigns.date_to', '<=', $dateTo);
+		}
+		return $query->sum('ads_campaign_product.amount_spent');
+	}
+
+	/**
+	 * Get total leads filtered by date range
+	 */
+	public function getFilteredLeads($dateFrom = null, $dateTo = null)
+	{
+		$query = $this->adsCampaigns();
+		if ($dateFrom) {
+			$query->whereDate('ads_campaigns.date_from', '>=', $dateFrom);
+		}
+		if ($dateTo) {
+			$query->whereDate('ads_campaigns.date_to', '<=', $dateTo);
+		}
+		return $query->sum('ads_campaign_product.leads');
+	}
+
+	/**
+	 * Get total orders filtered by date range
+	 */
+	public function getFilteredOrders($dateFrom = null, $dateTo = null)
+	{
+		$query = $this->invoiceItems()
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id');
+		if ($dateFrom) {
+			$query->whereDate('invoices.date', '>=', $dateFrom);
+		}
+		if ($dateTo) {
+			$query->whereDate('invoices.date', '<=', $dateTo);
+		}
+		return $query->sum('invoice_items.total_orders');
+	}
+
+	/**
+	 * Get delivery rate filtered by date range
+	 */
+	public function getFilteredDeliveryRate($dateFrom = null, $dateTo = null)
+	{
+		$totalLeads = $this->getFilteredLeads($dateFrom, $dateTo);
+		if ($totalLeads == 0) {
+			return 0;
+		}
+		$totalOrders = $this->getFilteredOrders($dateFrom, $dateTo);
+		return ($totalOrders / $totalLeads) * 100;
+	}
+
+	/**
+	 * Get cost per lead filtered by date range
+	 */
+	public function getFilteredCostPerLead($dateFrom = null, $dateTo = null)
+	{
+		$totalLeads = $this->getFilteredLeads($dateFrom, $dateTo);
+		if ($totalLeads == 0) {
+			return 0;
+		}
+		$totalAdsCost = $this->getFilteredAdsCost($dateFrom, $dateTo);
+		return $totalAdsCost / $totalLeads;
+	}
+
+	/**
+	 * Get cost per delivered filtered by date range
+	 */
+	public function getFilteredCostPerDelivered($dateFrom = null, $dateTo = null)
+	{
+		$totalOrders = $this->getFilteredOrders($dateFrom, $dateTo);
+		if ($totalOrders == 0) {
+			return 0;
+		}
+		$totalAdsCost = $this->getFilteredAdsCost($dateFrom, $dateTo);
+		return $totalAdsCost / $totalOrders;
+	}
+
+	/**
+	 * Get total amount filtered by date range
+	 */
+	public function getFilteredTotalAmount($dateFrom = null, $dateTo = null)
+	{
+		$query = $this->invoiceItems()
+			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+			->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id');
+		
+		if ($dateFrom) {
+			$query->whereDate('invoices.date', '>=', $dateFrom);
+		}
+		if ($dateTo) {
+			$query->whereDate('invoices.date', '<=', $dateTo);
+		}
+		
+		return $query->selectRaw('SUM(invoice_items.revenue - (invoice_items.total_orders * COALESCE(delivery_fees.fee_per_unit, 0)) - (invoice_items.quantity_sold * invoice_items.unit_cost)) as total')
+			->value('total') ?? 0;
+	}
+
+	/**
+	 * Get net profit filtered by date range
+	 */
+	public function getFilteredNetProfit($dateFrom = null, $dateTo = null)
+	{
+		$totalAmount = $this->getFilteredTotalAmount($dateFrom, $dateTo);
+		$totalAdsCost = $this->getFilteredAdsCost($dateFrom, $dateTo);
+		return $totalAmount - $totalAdsCost;
+	}
+
+	/**
 	 * Calculate average cost total from all sourcings (including restocks)
 	 * Formula: Total Final Price Total / Total Quantity
 	 */

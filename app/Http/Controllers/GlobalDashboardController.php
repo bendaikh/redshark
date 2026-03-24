@@ -102,9 +102,10 @@ class GlobalDashboardController extends Controller
 		$products = $productsQuery->get();
 		
 		// Calculate filtered total profits based on marketing date range
+		// Total Profits = Sum of all products' net_profit (Total Amount - Total Ads Cost)
 		if ($marketingFrom || $marketingTo) {
 			// When filtering by marketing dates, calculate profit from invoice items in that range
-			$totalProfits = DB::table('invoice_items')
+			$totalAmount = DB::table('invoice_items')
 				->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 				->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id')
 				->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
@@ -116,8 +117,9 @@ class GlobalDashboardController extends Controller
 			
 			// Subtract ads cost in the date range
 			$adsInRange = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?? 0;
-			$totalProfits = $totalProfits - $adsInRange;
+			$totalProfits = $totalAmount - $adsInRange;
 		} else {
+			// Sum net_profit from all filtered products (per country)
 			$totalProfits = $products->sum(function($product) {
 				return $product->net_profit;
 			});

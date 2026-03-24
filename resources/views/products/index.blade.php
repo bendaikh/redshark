@@ -34,16 +34,44 @@
 							@endforeach
 						</select>
 					</div>
-					<div class="sm:flex-shrink-0">
-						<button class="w-full sm:w-auto px-6 py-3 bg-gray-800 dark:bg-gray-600 text-white text-base font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-500 active:bg-gray-950 transition-colors touch-manipulation shadow-lg shadow-gray-500/25">{{ __('Filter') }}</button>
+					<div class="sm:w-40">
+						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('Date From') }}</label>
+						<input type="date" name="date_from" value="{{ $dateFrom ?? '' }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
+					</div>
+					<div class="sm:w-40">
+						<label class="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-1.5">{{ __('Date To') }}</label>
+						<input type="date" name="date_to" value="{{ $dateTo ?? '' }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:[color-scheme:dark]">
+					</div>
+					<div class="sm:flex-shrink-0 flex gap-2">
+						<button class="flex-1 sm:flex-none px-6 py-3 bg-gray-800 dark:bg-gray-600 text-white text-base font-semibold rounded-xl hover:bg-gray-900 dark:hover:bg-gray-500 active:bg-gray-950 transition-colors touch-manipulation shadow-lg shadow-gray-500/25">{{ __('Filter') }}</button>
+						@if($dateFrom || $dateTo || $q || $countryId)
+							<a href="{{ route('products.index') }}" class="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">{{ __('Clear') }}</a>
+						@endif
 					</div>
 				</form>
+				@if($dateFrom || $dateTo)
+					<div class="mt-3 p-2 bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 rounded text-sm text-indigo-800 dark:text-indigo-300">
+						{{ __('Date filter applied:') }} 
+						<span class="font-semibold">
+							{{ $dateFrom ? \Carbon\Carbon::parse($dateFrom)->format('M d, Y') : __('Start') }} 
+							— 
+							{{ $dateTo ? \Carbon\Carbon::parse($dateTo)->format('M d, Y') : __('End') }}
+						</span>
+						<span class="text-xs ml-2">({{ __('Affects: Delivery %, Ads Cost, CPL, CPD, Net Profit') }})</span>
+					</div>
+				@endif
 			</div>
 		<!-- Mobile Card Layout -->
 		<div class="block lg:hidden space-y-3">
 			@foreach($products as $p)
 				@php
-					$deliveryRate = $p->delivery_rate;
+					$hasDateFilter = !empty($dateFrom) || !empty($dateTo);
+					$deliveryRate = $hasDateFilter ? $p->getFilteredDeliveryRate($dateFrom, $dateTo) : $p->delivery_rate;
+					$adsCost = $hasDateFilter ? $p->getFilteredAdsCost($dateFrom, $dateTo) : $p->total_ads_cost;
+					$cpl = $hasDateFilter ? $p->getFilteredCostPerLead($dateFrom, $dateTo) : $p->cost_per_lead;
+					$cpd = $hasDateFilter ? $p->getFilteredCostPerDelivered($dateFrom, $dateTo) : $p->cost_per_delivered;
+					$netProfit = $hasDateFilter ? $p->getFilteredNetProfit($dateFrom, $dateTo) : $p->net_profit;
+					
 					$cardBorder = 'border-l-4 border-gray-300';
 					if ($deliveryRate >= 20) {
 						$cardBorder = 'border-l-4 border-green-500';
@@ -85,7 +113,7 @@
 						</div>
 						<div class="text-center p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
 							<p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Profit') }}</p>
-							<p class="text-sm font-semibold {{ $p->net_profit >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($p->net_profit, 2) }}</p>
+							<p class="text-sm font-semibold {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($netProfit, 2) }}</p>
 						</div>
 					</div>
 					
@@ -102,15 +130,15 @@
 							</div>
 							<div class="flex justify-between">
 								<span class="text-gray-500 dark:text-gray-400">{{ __('Ads Cost') }}</span>
-								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->total_ads_cost, 2) }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($adsCost, 2) }}</span>
 							</div>
 							<div class="flex justify-between">
 								<span class="text-gray-500 dark:text-gray-400">{{ __('CPL') }}</span>
-								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->cost_per_lead, 2) }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($cpl, 2) }}</span>
 							</div>
 							<div class="flex justify-between">
 								<span class="text-gray-500 dark:text-gray-400">{{ __('CPD') }}</span>
-								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($p->cost_per_delivered, 2) }}</span>
+								<span class="font-medium text-gray-900 dark:text-gray-100">{{ number_format($cpd, 2) }}</span>
 							</div>
 						</div>
 					</div>
@@ -174,7 +202,13 @@
 					<tbody class="text-gray-700 dark:text-gray-200 text-sm divide-y divide-gray-100 dark:divide-gray-700">
 						@foreach($products as $p)
 							@php
-								$deliveryRate = $p->delivery_rate;
+								$hasDateFilter = !empty($dateFrom) || !empty($dateTo);
+								$deliveryRate = $hasDateFilter ? $p->getFilteredDeliveryRate($dateFrom, $dateTo) : $p->delivery_rate;
+								$adsCost = $hasDateFilter ? $p->getFilteredAdsCost($dateFrom, $dateTo) : $p->total_ads_cost;
+								$cpl = $hasDateFilter ? $p->getFilteredCostPerLead($dateFrom, $dateTo) : $p->cost_per_lead;
+								$cpd = $hasDateFilter ? $p->getFilteredCostPerDelivered($dateFrom, $dateTo) : $p->cost_per_delivered;
+								$netProfit = $hasDateFilter ? $p->getFilteredNetProfit($dateFrom, $dateTo) : $p->net_profit;
+								
 								$bgColor = 'bg-white dark:bg-gray-800';
 								if ($deliveryRate >= 20) {
 									$bgColor = 'bg-green-50 dark:bg-green-900/30';
@@ -201,10 +235,10 @@
 								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->average_cost, 2) }}</td>
 								<td class="py-3 px-3 whitespace-nowrap">{{ $p->country?->name ?? '-' }}</td>
 								<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($deliveryRate, 2) }}%</td>
-								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->total_ads_cost, 2) }}</td>
-								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_lead, 2) }}</td>
-								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($p->cost_per_delivered, 2) }}</td>
-								<td class="py-3 px-3 text-right tabular-nums font-medium">{{ number_format($p->net_profit, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($adsCost, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($cpl, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums">{{ number_format($cpd, 2) }}</td>
+								<td class="py-3 px-3 text-right tabular-nums font-medium {{ $netProfit >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ number_format($netProfit, 2) }}</td>
 								<td class="py-3 px-3">
 									<div class="flex items-center justify-center gap-1">
 										<button @click="window.loadStatistics({{ $p->id }})" class="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors touch-manipulation" title="{{ __('Statistics') }}">

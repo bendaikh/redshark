@@ -19,6 +19,8 @@ class ProductController extends Controller
 	{
 		$countryId = (int) ($request->input('country_id') ?? $request->session()->get('current_country_id'));
 		$q = trim((string) $request->input('q'));
+		$dateFrom = $request->input('date_from');
+		$dateTo = $request->input('date_to');
 
 		$products = Product::with(['country', 'category', 'sourcings'])
 			->when($countryId, fn($query) => $query->where('country_id', $countryId))
@@ -33,7 +35,7 @@ class ProductController extends Controller
 			->withQueryString();
 
 		$countries = Country::orderBy('name')->get();
-		return view('products.index', compact('products', 'countries', 'countryId', 'q'));
+		return view('products.index', compact('products', 'countries', 'countryId', 'q', 'dateFrom', 'dateTo'));
 	}
 
 	/**
