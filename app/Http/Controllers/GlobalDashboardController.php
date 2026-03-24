@@ -27,10 +27,17 @@ class GlobalDashboardController extends Controller
 
 		// If not global, show only selected country
 		$totalCountries = $isGlobal ? Country::count() : Country::where('id', $countryId)->count();
-		$totalInvoices = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-			->count();
+		$totalInvoicesQuery = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId));
+		
+		if ($from && $to) {
+			$totalInvoicesQuery->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+		} elseif ($from) {
+			$totalInvoicesQuery->where('date_to', '>=', $from);
+		} elseif ($to) {
+			$totalInvoicesQuery->where('date_from', '<=', $to);
+		}
+		
+		$totalInvoices = $totalInvoicesQuery->count();
 		// Calculate ads and marketing stats from pivot table (clone query for reuse)
 		// Uses marketing-specific date filters for Marketing Performance section
 		$adsStatsBaseQuery = DB::table('ads_campaign_product')
@@ -38,22 +45,30 @@ class GlobalDashboardController extends Controller
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
 			->when($productId, fn($q) => $q->where('ads_campaign_product.product_id', $productId));
 		
-		// Apply marketing-specific date filters if provided
-		if ($marketingFrom) {
-			$adsStatsBaseQuery->whereDate('ads_campaigns.date_from', '>=', $marketingFrom);
-		}
-		if ($marketingTo) {
-			$adsStatsBaseQuery->whereDate('ads_campaigns.date_to', '<=', $marketingTo);
+		// Apply marketing-specific date filters if provided (using overlap logic)
+		if ($marketingFrom && $marketingTo) {
+			$adsStatsBaseQuery->where('ads_campaigns.date_from', '<=', $marketingTo)
+				->where('ads_campaigns.date_to', '>=', $marketingFrom);
+		} elseif ($marketingFrom) {
+			$adsStatsBaseQuery->where('ads_campaigns.date_to', '>=', $marketingFrom);
+		} elseif ($marketingTo) {
+			$adsStatsBaseQuery->where('ads_campaigns.date_from', '<=', $marketingTo);
 		}
 
 		$totalAdsSpent = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.amount_spent') ?: 0;
 		$totalLeads = (clone $adsStatsBaseQuery)->sum('ads_campaign_product.leads') ?? 0;
 
-	$totalExpenses = $totalAdsSpent
-		+ Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date', '<=', $to))
-			->sum('total_amount');
+	$invoiceExpensesQuery = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId));
+	
+	if ($from && $to) {
+		$invoiceExpensesQuery->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+	} elseif ($from) {
+		$invoiceExpensesQuery->where('date_to', '>=', $from);
+	} elseif ($to) {
+		$invoiceExpensesQuery->where('date_from', '<=', $to);
+	}
+	
+	$totalExpenses = $totalAdsSpent + $invoiceExpensesQuery->sum('total_amount');
 	// Calculate stock value using average cost from sourcings
 	$products = Product::with('sourcings')
 		->when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
@@ -62,22 +77,37 @@ class GlobalDashboardController extends Controller
 		return $product->quantity * $product->average_cost;
 	});
 
-		// Accounting orders - uses global date filters for Accounting Balance section
+		// Accounting orders - uses global date filters for Accounting Balance section (using overlap logic)
 		$accountingOrdersQuery = DB::table('invoice_items')
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('invoices.date', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('invoices.date', '<=', $to));
+			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId));
+		
+		if ($from && $to) {
+			$accountingOrdersQuery->where('invoices.date_from', '<=', $to)
+				->where('invoices.date_to', '>=', $from);
+		} elseif ($from) {
+			$accountingOrdersQuery->where('invoices.date_to', '>=', $from);
+		} elseif ($to) {
+			$accountingOrdersQuery->where('invoices.date_from', '<=', $to);
+		}
+		
 		$accountingOrders = (clone $accountingOrdersQuery)->sum('invoice_items.total_orders') ?? 0;
 
 		// Marketing KPIs
-		// Uses marketing-specific date filters for Marketing Performance section
+		// Uses marketing-specific date filters for Marketing Performance section (using overlap logic)
 		$ordersQuery = DB::table('invoice_items')
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-			->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
-			->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
 			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId));
+		
+		if ($marketingFrom && $marketingTo) {
+			$ordersQuery->where('invoices.date_from', '<=', $marketingTo)
+				->where('invoices.date_to', '>=', $marketingFrom);
+		} elseif ($marketingFrom) {
+			$ordersQuery->where('invoices.date_to', '>=', $marketingFrom);
+		} elseif ($marketingTo) {
+			$ordersQuery->where('invoices.date_from', '<=', $marketingTo);
+		}
 
 		$totalOrders = (clone $ordersQuery)->sum('invoice_items.total_orders') ?? 0;
 
@@ -104,15 +134,23 @@ class GlobalDashboardController extends Controller
 		// Calculate filtered total profits based on marketing date range
 		// Total Profits = Sum of all products' net_profit (Total Amount - Total Ads Cost)
 		if ($marketingFrom || $marketingTo) {
-			// When filtering by marketing dates, calculate profit from invoice items in that range
-			$totalAmount = DB::table('invoice_items')
+			// When filtering by marketing dates, calculate profit from invoice items in that range (using overlap logic)
+			$totalAmountQuery = DB::table('invoice_items')
 				->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 				->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id')
 				->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-				->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
-				->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
-				->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId))
-				->selectRaw('SUM(invoice_items.revenue - (invoice_items.total_orders * COALESCE(delivery_fees.fee_per_unit, 0)) - (invoice_items.quantity_sold * invoice_items.unit_cost)) as total')
+				->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId));
+			
+			if ($marketingFrom && $marketingTo) {
+				$totalAmountQuery->where('invoices.date_from', '<=', $marketingTo)
+					->where('invoices.date_to', '>=', $marketingFrom);
+			} elseif ($marketingFrom) {
+				$totalAmountQuery->where('invoices.date_to', '>=', $marketingFrom);
+			} elseif ($marketingTo) {
+				$totalAmountQuery->where('invoices.date_from', '<=', $marketingTo);
+			}
+			
+			$totalAmount = $totalAmountQuery->selectRaw('SUM(invoice_items.revenue - (invoice_items.total_orders * COALESCE(delivery_fees.fee_per_unit, 0)) - (invoice_items.quantity_sold * invoice_items.unit_cost)) as total')
 				->value('total') ?? 0;
 			
 			// Subtract ads cost in the date range
@@ -147,14 +185,22 @@ class GlobalDashboardController extends Controller
 			->sum('quantity');
 
 		// Sold Quantity (total from all invoice items)
-		// Uses marketing-specific date filters to match Marketing Performance section
-		$soldQuantity = DB::table('invoice_items')
+		// Uses marketing-specific date filters to match Marketing Performance section (using overlap logic)
+		$soldQuantityQuery = DB::table('invoice_items')
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-			->when($marketingFrom, fn($q) => $q->whereDate('invoices.date', '>=', $marketingFrom))
-			->when($marketingTo, fn($q) => $q->whereDate('invoices.date', '<=', $marketingTo))
-			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId))
-			->sum('invoice_items.quantity_sold') ?? 0;
+			->when($productId, fn($q) => $q->where('invoice_items.product_id', $productId));
+		
+		if ($marketingFrom && $marketingTo) {
+			$soldQuantityQuery->where('invoices.date_from', '<=', $marketingTo)
+				->where('invoices.date_to', '>=', $marketingFrom);
+		} elseif ($marketingFrom) {
+			$soldQuantityQuery->where('invoices.date_to', '>=', $marketingFrom);
+		} elseif ($marketingTo) {
+			$soldQuantityQuery->where('invoices.date_from', '<=', $marketingTo);
+		}
+		
+		$soldQuantity = $soldQuantityQuery->sum('invoice_items.quantity_sold') ?? 0;
 
 		// Sold Rate (sold quantity / initial quantity) as percentage
 		$soldRate = $initialQuantity > 0 ? ($soldQuantity / $initialQuantity) * 100 : 0;
@@ -173,11 +219,18 @@ class GlobalDashboardController extends Controller
 			->where('validated', true)->count();
 		$pendingSourcings = $totalSourcings - $validatedSourcings;
 
-		// Ads management
-		$totalAdsCampaigns = AdsCampaign::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-			->when($from, fn($q) => $q->whereDate('date_from', '>=', $from))
-			->when($to, fn($q) => $q->whereDate('date_to', '<=', $to))
-			->count();
+		// Ads management (using overlap logic)
+		$totalAdsCampaignsQuery = AdsCampaign::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId));
+		
+		if ($from && $to) {
+			$totalAdsCampaignsQuery->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+		} elseif ($from) {
+			$totalAdsCampaignsQuery->where('date_to', '>=', $from);
+		} elseif ($to) {
+			$totalAdsCampaignsQuery->where('date_from', '<=', $to);
+		}
+		
+		$totalAdsCampaigns = $totalAdsCampaignsQuery->count();
 
 		// Accounting data
 		$accountingBalance = Balance::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
@@ -216,20 +269,22 @@ class GlobalDashboardController extends Controller
 
 		// Chart data - Time-based metrics (always generate, use all-time if no filters)
 		$chartData = [];
-		$minDate = Invoice::min('date');
-		$maxDate = Invoice::max('date');
+		$minDate = Invoice::min('date_from');
+		$maxDate = Invoice::max('date_to');
 		$chartFrom = $from ?: ($minDate ?: now()->subMonths(6)->format('Y-m-d'));
 		$chartTo = $to ?: ($maxDate ?: now()->format('Y-m-d'));
 		
 		// Always try to generate chart data, even if empty
 		if ($chartFrom && $chartTo) {
 			// Get invoice items with calculated total amounts (matching Product model logic exactly)
+			// Using overlap logic: include invoices where date range overlaps with chart range
 			$invoiceItems = DB::table('invoice_items')
 				->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 				->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id')
 				->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-				->whereBetween('invoices.date', [$chartFrom, $chartTo])
-				->selectRaw('DATE_FORMAT(invoices.date, "%Y-%m") as month,
+				->where('invoices.date_from', '<=', $chartTo)
+				->where('invoices.date_to', '>=', $chartFrom)
+				->selectRaw('DATE_FORMAT(invoices.date_from, "%Y-%m") as month,
 					invoice_items.product_id,
 					invoice_items.revenue,
 					invoice_items.total_orders,
@@ -267,13 +322,14 @@ class GlobalDashboardController extends Controller
 			
 			// For each product, allocate its ads cost to months based on revenue proportion
 			foreach ($productsWithAds as $productAds) {
-				// Get revenue per month for this product
+				// Get revenue per month for this product (using overlap logic)
 				$productRevenueByMonth = DB::table('invoice_items')
 					->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 					->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
 					->where('invoice_items.product_id', $productAds->product_id)
-					->whereBetween('invoices.date', [$chartFrom, $chartTo])
-					->selectRaw('DATE_FORMAT(invoices.date, "%Y-%m") as month, SUM(invoice_items.revenue) as revenue')
+					->where('invoices.date_from', '<=', $chartTo)
+					->where('invoices.date_to', '>=', $chartFrom)
+					->selectRaw('DATE_FORMAT(invoices.date_from, "%Y-%m") as month, SUM(invoice_items.revenue) as revenue')
 					->groupBy('month')
 					->get();
 				
@@ -328,20 +384,22 @@ class GlobalDashboardController extends Controller
 				];
 			})->values();
 
-			// Ads spending over time
+			// Ads spending over time (using overlap logic)
 			$adsChart = DB::table('ads_campaign_product')
 				->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
 				->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
-				->whereBetween('ads_campaigns.date_from', [$chartFrom, $chartTo])
+				->where('ads_campaigns.date_from', '<=', $chartTo)
+				->where('ads_campaigns.date_to', '>=', $chartFrom)
 				->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as spent')
 				->groupBy('month')
 				->orderBy('month')
 				->get();
 
-			// Invoices over time
+			// Invoices over time (using overlap logic)
 			$invoicesChart = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
-				->whereBetween('date', [$chartFrom, $chartTo])
-				->selectRaw('DATE_FORMAT(date, "%Y-%m") as month, COUNT(*) as count, SUM(total_amount) as total')
+				->where('date_from', '<=', $chartTo)
+				->where('date_to', '>=', $chartFrom)
+				->selectRaw('DATE_FORMAT(date_from, "%Y-%m") as month, COUNT(*) as count, SUM(total_amount) as total')
 				->groupBy('month')
 				->orderBy('month')
 				->get();
@@ -355,16 +413,26 @@ class GlobalDashboardController extends Controller
 
 		$byCountry = Country::when(!$isGlobal && $countryId, fn($q) => $q->where('id', $countryId))
 			->withCount([
-				// Sum of invoice totals in range
+				// Sum of invoice totals in range (using overlap logic)
 				'invoices as total_invoices_amount' => function ($q) use ($from, $to) {
-					$q->when($from, fn($qq) => $qq->whereDate('date', '>=', $from))
-					  ->when($to, fn($qq) => $qq->whereDate('date', '<=', $to))
-					  ->select(\DB::raw('coalesce(sum(total_amount),0)'));
+					if ($from && $to) {
+						$q->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+					} elseif ($from) {
+						$q->where('date_to', '>=', $from);
+					} elseif ($to) {
+						$q->where('date_from', '<=', $to);
+					}
+					$q->select(\DB::raw('coalesce(sum(total_amount),0)'));
 				},
-				// Count of invoices in range
+				// Count of invoices in range (using overlap logic)
 				'invoices as invoices_count' => function ($q) use ($from, $to) {
-					$q->when($from, fn($qq) => $qq->whereDate('date', '>=', $from))
-					  ->when($to, fn($qq) => $qq->whereDate('date', '<=', $to));
+					if ($from && $to) {
+						$q->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+					} elseif ($from) {
+						$q->where('date_to', '>=', $from);
+					} elseif ($to) {
+						$q->where('date_from', '<=', $to);
+					}
 				},
 				// Products count
 				'products',
@@ -374,9 +442,14 @@ class GlobalDashboardController extends Controller
 				},
 			])
 			->with(['adsCampaigns' => function ($q) use ($from, $to) {
-				$q->when($from, fn($qq) => $qq->whereDate('date_from', '>=', $from))
-				  ->when($to, fn($qq) => $qq->whereDate('date_to', '<=', $to))
-				  ->with('products');
+				if ($from && $to) {
+					$q->where('date_from', '<=', $to)->where('date_to', '>=', $from);
+				} elseif ($from) {
+					$q->where('date_to', '>=', $from);
+				} elseif ($to) {
+					$q->where('date_from', '<=', $to);
+				}
+				$q->with('products');
 			}])
 			->get()
 			->map(function ($country) {
