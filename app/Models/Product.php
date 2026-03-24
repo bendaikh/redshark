@@ -166,12 +166,18 @@ class Product extends Model
 	public function getFilteredAdsCost($dateFrom = null, $dateTo = null)
 	{
 		$query = $this->adsCampaigns();
-		if ($dateFrom) {
-			$query->whereDate('ads_campaigns.date_from', '>=', $dateFrom);
+		
+		if ($dateFrom && $dateTo) {
+			$query->where(function($q) use ($dateFrom, $dateTo) {
+				$q->where('ads_campaigns.date_from', '<=', $dateTo)
+				  ->where('ads_campaigns.date_to', '>=', $dateFrom);
+			});
+		} elseif ($dateFrom) {
+			$query->where('ads_campaigns.date_to', '>=', $dateFrom);
+		} elseif ($dateTo) {
+			$query->where('ads_campaigns.date_from', '<=', $dateTo);
 		}
-		if ($dateTo) {
-			$query->whereDate('ads_campaigns.date_to', '<=', $dateTo);
-		}
+		
 		return $query->sum('ads_campaign_product.amount_spent');
 	}
 
@@ -181,12 +187,18 @@ class Product extends Model
 	public function getFilteredLeads($dateFrom = null, $dateTo = null)
 	{
 		$query = $this->adsCampaigns();
-		if ($dateFrom) {
-			$query->whereDate('ads_campaigns.date_from', '>=', $dateFrom);
+		
+		if ($dateFrom && $dateTo) {
+			$query->where(function($q) use ($dateFrom, $dateTo) {
+				$q->where('ads_campaigns.date_from', '<=', $dateTo)
+				  ->where('ads_campaigns.date_to', '>=', $dateFrom);
+			});
+		} elseif ($dateFrom) {
+			$query->where('ads_campaigns.date_to', '>=', $dateFrom);
+		} elseif ($dateTo) {
+			$query->where('ads_campaigns.date_from', '<=', $dateTo);
 		}
-		if ($dateTo) {
-			$query->whereDate('ads_campaigns.date_to', '<=', $dateTo);
-		}
+		
 		return $query->sum('ads_campaign_product.leads');
 	}
 
@@ -197,12 +209,18 @@ class Product extends Model
 	{
 		$query = $this->invoiceItems()
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id');
-		if ($dateFrom) {
-			$query->whereDate('invoices.date', '>=', $dateFrom);
+		
+		if ($dateFrom && $dateTo) {
+			$query->where(function($q) use ($dateFrom, $dateTo) {
+				$q->where('invoices.date_from', '<=', $dateTo)
+				  ->where('invoices.date_to', '>=', $dateFrom);
+			});
+		} elseif ($dateFrom) {
+			$query->where('invoices.date_to', '>=', $dateFrom);
+		} elseif ($dateTo) {
+			$query->where('invoices.date_from', '<=', $dateTo);
 		}
-		if ($dateTo) {
-			$query->whereDate('invoices.date', '<=', $dateTo);
-		}
+		
 		return $query->sum('invoice_items.total_orders');
 	}
 
@@ -254,11 +272,15 @@ class Product extends Model
 			->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
 			->leftJoin('delivery_fees', 'invoice_items.delivery_fee_id', '=', 'delivery_fees.id');
 		
-		if ($dateFrom) {
-			$query->whereDate('invoices.date', '>=', $dateFrom);
-		}
-		if ($dateTo) {
-			$query->whereDate('invoices.date', '<=', $dateTo);
+		if ($dateFrom && $dateTo) {
+			$query->where(function($q) use ($dateFrom, $dateTo) {
+				$q->where('invoices.date_from', '<=', $dateTo)
+				  ->where('invoices.date_to', '>=', $dateFrom);
+			});
+		} elseif ($dateFrom) {
+			$query->where('invoices.date_to', '>=', $dateFrom);
+		} elseif ($dateTo) {
+			$query->where('invoices.date_from', '<=', $dateTo);
 		}
 		
 		return $query->selectRaw('SUM(invoice_items.revenue - (invoice_items.total_orders * COALESCE(delivery_fees.fee_per_unit, 0)) - (invoice_items.quantity_sold * invoice_items.unit_cost)) as total')
