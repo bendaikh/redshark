@@ -369,7 +369,7 @@
 						chart: { type: 'line', height: 250, toolbar: { show: false } },
 						stroke: { curve: 'smooth', width: 2 },
 						xaxis: { categories: ordersDates },
-						colors: ['#3b82f6', '#10b981'],
+						colors: ['#F58220', '#10b981'],
 						theme: { mode: isDark ? 'dark' : 'light' }
 					});
 					ordersChart.render();

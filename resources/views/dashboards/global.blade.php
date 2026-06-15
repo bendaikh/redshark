@@ -966,7 +966,7 @@
 						labels: { formatter: (value) => Math.round(value) }
 					}
 				],
-				colors: ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'],
+				colors: ['#F58220', '#ef4444', '#10b981', '#f59e0b'],
 				theme: chartTheme,
 				dataLabels: { 
 					enabled: false 
@@ -1041,7 +1041,7 @@
 				chart: { type: 'line', height: 300, toolbar: { show: false }, zoom: { enabled: false } },
 				xaxis: { categories: invoicesData.map(item => item.month) },
 				stroke: { curve: 'smooth', width: 2 },
-				colors: ['#3b82f6'],
+				colors: ['#F58220'],
 				theme: chartTheme,
 				dataLabels: { enabled: false }
 			});

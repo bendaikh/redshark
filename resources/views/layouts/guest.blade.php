@@ -48,8 +48,8 @@
 			</div>
 		</div>
 
-		<div class="min-h-screen grid md:grid-cols-2 bg-gray-100 dark:bg-gray-900">
-			<div class="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500">
+		<div class="min-h-screen grid md:grid-cols-2 bg-surface-warm dark:bg-gray-900">
+			<div class="hidden md:flex items-center justify-center p-8 bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700">
 				<div class="max-w-md text-white">
 					<a href="/" class="inline-block">
 						<x-application-logo class="w-16 h-16 mb-6 fill-current text-white" />
