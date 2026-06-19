@@ -308,70 +308,27 @@ class GlobalDashboardController extends Controller
 				$profitsByMonth[$item->month] += $totalAmount;
 			}
 
-			// Get ads costs per month - allocate proportionally based on product revenue per month
-			// This ensures ads costs are matched to the months when revenue was generated
-			$adsByMonth = [];
-			
-			// Get all products with their total ads costs
-			$productsWithAds = DB::table('ads_campaign_product')
+			// Ads spending by month — single source of truth for all chart ads metrics
+			$adsChart = DB::table('ads_campaign_product')
 				->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
 				->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
-				->selectRaw('ads_campaign_product.product_id, SUM(ads_campaign_product.amount_spent) as total_ads_cost')
-				->groupBy('ads_campaign_product.product_id')
+				->where('ads_campaigns.date_from', '<=', $chartTo)
+				->where('ads_campaigns.date_to', '>=', $chartFrom)
+				->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as spent')
+				->groupBy('month')
+				->orderBy('month')
 				->get();
-			
-			// For each product, allocate its ads cost to months based on revenue proportion
-			foreach ($productsWithAds as $productAds) {
-				// Get revenue per month for this product (using overlap logic)
-				$productRevenueByMonth = DB::table('invoice_items')
-					->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-					->when(!$isGlobal && $countryId, fn($q) => $q->where('invoices.country_id', $countryId))
-					->where('invoice_items.product_id', $productAds->product_id)
-					->where('invoices.date_from', '<=', $chartTo)
-					->where('invoices.date_to', '>=', $chartFrom)
-					->selectRaw('DATE_FORMAT(invoices.date_from, "%Y-%m") as month, SUM(invoice_items.revenue) as revenue')
-					->groupBy('month')
-					->get();
-				
-				$totalRevenue = $productRevenueByMonth->sum('revenue');
-				
-				if ($totalRevenue > 0) {
-					// Allocate ads cost proportionally based on revenue
-					foreach ($productRevenueByMonth as $monthRevenue) {
-						$proportion = $monthRevenue->revenue / $totalRevenue;
-						$allocatedAdsCost = $productAds->total_ads_cost * $proportion;
-						
-						if (!isset($adsByMonth[$monthRevenue->month])) {
-							$adsByMonth[$monthRevenue->month] = 0;
-						}
-						$adsByMonth[$monthRevenue->month] += $allocatedAdsCost;
-					}
-				} else {
-					// If no revenue, allocate ads cost to campaign start month
-					$campaignMonths = DB::table('ads_campaign_product')
-						->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
-						->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
-						->where('ads_campaign_product.product_id', $productAds->product_id)
-						->whereBetween('ads_campaigns.date_from', [$chartFrom, $chartTo])
-						->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as ads_cost')
-						->groupBy('month')
-						->get();
-					
-					foreach ($campaignMonths as $campaignMonth) {
-						if (!isset($adsByMonth[$campaignMonth->month])) {
-							$adsByMonth[$campaignMonth->month] = 0;
-						}
-						$adsByMonth[$campaignMonth->month] += $campaignMonth->ads_cost;
-					}
-				}
+
+			$adsByMonth = [];
+			foreach ($adsChart as $row) {
+				$adsByMonth[$row->month] = $row->spent;
 			}
 			
 			// Get all unique months (from both invoices and ads)
 			$allMonths = array_unique(array_merge(array_keys($profitsByMonth), array_keys($adsByMonth)));
 			sort($allMonths);
 
-			// Combine to get net profit per month (Total Amount - Ads Cost for that month)
-			// This matches Product::getNetProfitAttribute() = Total Amount - Total Ads Cost
+			// Combine to get net profit per month (Total Amount - actual Ads Spending for that month)
 			$profitsChart = collect($allMonths)->map(function($month) use ($profitsByMonth, $adsByMonth) {
 				$totalAmount = isset($profitsByMonth[$month]) ? $profitsByMonth[$month] : 0;
 				$adsCost = isset($adsByMonth[$month]) ? $adsByMonth[$month] : 0;
@@ -383,17 +340,6 @@ class GlobalDashboardController extends Controller
 					'net_profit' => $netProfit
 				];
 			})->values();
-
-			// Ads spending over time (using overlap logic)
-			$adsChart = DB::table('ads_campaign_product')
-				->join('ads_campaigns', 'ads_campaign_product.ads_campaign_id', '=', 'ads_campaigns.id')
-				->when(!$isGlobal && $countryId, fn($q) => $q->where('ads_campaigns.country_id', $countryId))
-				->where('ads_campaigns.date_from', '<=', $chartTo)
-				->where('ads_campaigns.date_to', '>=', $chartFrom)
-				->selectRaw('DATE_FORMAT(ads_campaigns.date_from, "%Y-%m") as month, SUM(ads_campaign_product.amount_spent) as spent')
-				->groupBy('month')
-				->orderBy('month')
-				->get();
 
 			// Invoices over time (using overlap logic)
 			$invoicesChart = Invoice::when(!$isGlobal && $countryId, fn($q) => $q->where('country_id', $countryId))
