@@ -10,6 +10,8 @@ class AdsCampaign extends Model
 	protected $fillable = [
 		'user_id',
 		'name',
+		'amount_spent',
+		'leads',
 		'platform_id',
 		'country_id',
 		'date_from',
@@ -20,6 +22,8 @@ class AdsCampaign extends Model
 	protected $casts = [
 		'date_from' => 'date',
 		'date_to' => 'date',
+		'amount_spent' => 'decimal:2',
+		'leads' => 'integer',
 	];
 
 	public function user()
@@ -46,26 +50,44 @@ class AdsCampaign extends Model
 
 	public function getTotalAmountSpentAttribute()
 	{
+		$pivotTotal = 0;
+
 		if ($this->relationLoaded('products')) {
-			return $this->products->sum(function($product) {
+			$pivotTotal = $this->products->sum(function ($product) {
 				return $product->pivot->amount_spent ?? 0;
 			});
+		} else {
+			$pivotTotal = DB::table('ads_campaign_product')
+				->where('ads_campaign_id', $this->id)
+				->sum('amount_spent') ?: 0;
 		}
-		return DB::table('ads_campaign_product')
-			->where('ads_campaign_id', $this->id)
-			->sum('amount_spent') ?: 0;
+
+		if ($pivotTotal > 0) {
+			return $pivotTotal;
+		}
+
+		return $this->amount_spent ?? 0;
 	}
 
 	public function getTotalLeadsAttribute()
 	{
+		$pivotTotal = 0;
+
 		if ($this->relationLoaded('products')) {
-			return $this->products->sum(function($product) {
+			$pivotTotal = $this->products->sum(function ($product) {
 				return $product->pivot->leads ?? 0;
 			});
+		} else {
+			$pivotTotal = DB::table('ads_campaign_product')
+				->where('ads_campaign_id', $this->id)
+				->sum('leads') ?: 0;
 		}
-		return DB::table('ads_campaign_product')
-			->where('ads_campaign_id', $this->id)
-			->sum('leads') ?: 0;
+
+		if ($pivotTotal > 0) {
+			return $pivotTotal;
+		}
+
+		return $this->leads ?? 0;
 	}
 }
 

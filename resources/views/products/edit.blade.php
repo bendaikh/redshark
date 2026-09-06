@@ -14,6 +14,10 @@
 						<input name="name" value="{{ old('name', $product->name) }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
 					</div>
 					<div>
+						<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Import ID') }}</label>
+						<input name="import_id" value="{{ old('import_id', $product->import_id) }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="{{ __('Letters and numbers') }}">
+					</div>
+					<div>
 						<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Product Image') }}</label>
 						@if($product->image)
 							<div class="mb-3">

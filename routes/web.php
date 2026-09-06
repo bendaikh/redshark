@@ -98,6 +98,8 @@ Route::middleware(['auth', 'role:superadmin'])
 		Route::resource('suppliers', SupplierController::class);
 		Route::resource('invoices', InvoiceController::class);
 		Route::get('ads-campaigns/products-by-country', [AdsCampaignController::class, 'getProductsByCountry'])->name('ads-campaigns.products-by-country');
+		Route::post('ads-campaigns/import', [AdsCampaignController::class, 'import'])->name('ads-campaigns.import');
+		Route::post('ads-campaigns/bulk-update', [AdsCampaignController::class, 'bulkUpdate'])->name('ads-campaigns.bulk-update');
 		Route::resource('ads-campaigns', AdsCampaignController::class);
 		Route::resource('ads-platforms', AdsPlatformController::class);
 		Route::resource('sourcings', SourcingController::class);
@@ -143,7 +145,12 @@ Route::middleware(['auth', 'role:media_buyer'])
 		Route::get('/campaigns', [MediaBuyerController::class, 'campaigns'])->name('media-buyer.campaigns');
 		Route::get('/campaigns/create', [MediaBuyerController::class, 'createCampaign'])->name('media-buyer.campaigns.create');
 		Route::post('/campaigns', [MediaBuyerController::class, 'storeCampaign'])->name('media-buyer.campaigns.store');
+		Route::post('/campaigns/import', [MediaBuyerController::class, 'importCampaign'])->name('media-buyer.campaigns.import');
+		Route::post('/campaigns/bulk-update', [MediaBuyerController::class, 'bulkUpdateCampaigns'])->name('media-buyer.campaigns.bulk-update');
 		Route::get('/campaigns/products-by-country', [MediaBuyerController::class, 'getProductsByCountry'])->name('media-buyer.campaigns.products-by-country');
+		Route::get('/campaigns/{campaign}/edit', [MediaBuyerController::class, 'editCampaign'])->name('media-buyer.campaigns.edit');
+		Route::put('/campaigns/{campaign}', [MediaBuyerController::class, 'updateCampaign'])->name('media-buyer.campaigns.update');
+		Route::delete('/campaigns/{campaign}', [MediaBuyerController::class, 'destroyCampaign'])->name('media-buyer.campaigns.destroy');
 	});
 
 require __DIR__.'/auth.php';

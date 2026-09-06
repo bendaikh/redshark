@@ -55,11 +55,16 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
+			'import_id' => 'nullable|string|max:255',
 			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);
+
+		if (array_key_exists('import_id', $data) && $data['import_id'] === '') {
+			$data['import_id'] = null;
+		}
 
 		if ($request->hasFile('image')) {
 			$data['image'] = $request->file('image')->store('products', 'public');
@@ -94,11 +99,16 @@ class ProductController extends Controller
 	{
 		$data = $request->validate([
 			'name' => 'required|string|max:255',
+			'import_id' => 'nullable|string|max:255',
 			'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 			'category_id' => 'nullable|exists:categories,id',
 			'country_id' => 'required|exists:countries,id',
 			'low_stock_threshold' => 'nullable|integer|min:0',
 		]);
+
+		if (array_key_exists('import_id', $data) && $data['import_id'] === '') {
+			$data['import_id'] = null;
+		}
 
 		if ($request->hasFile('image')) {
 			if ($product->image) {

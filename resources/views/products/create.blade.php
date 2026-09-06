@@ -14,6 +14,10 @@
 						<input name="name" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" required>
 					</div>
 					<div>
+						<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Import ID') }}</label>
+						<input name="import_id" value="{{ old('import_id') }}" class="w-full py-2.5 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="{{ __('Letters and numbers') }}">
+					</div>
+					<div>
 						<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ __('Product Image') }}</label>
 						<input type="file" name="image" accept="image/*" class="w-full py-2 px-3 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-900/50 dark:file:text-indigo-300">
 						<p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{{ __('Max size: 2MB. Formats: JPEG, PNG, JPG, GIF') }}</p>

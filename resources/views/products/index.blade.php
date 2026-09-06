@@ -94,6 +94,10 @@
 						<div class="flex-1 min-w-0">
 							<h4 class="text-base font-semibold text-gray-900 dark:text-gray-100 truncate">{{ $p->name }}</h4>
 							<div class="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
+								@if($p->import_id)
+									<span>{{ __('Import ID') }}: {{ $p->import_id }}</span>
+									<span class="text-gray-300 dark:text-gray-600">•</span>
+								@endif
 								<span>{{ $p->category?->name ?? '-' }}</span>
 								<span class="text-gray-300 dark:text-gray-600">•</span>
 								<span>{{ $p->country?->name ?? '-' }}</span>
@@ -186,6 +190,7 @@
 						<tr class="text-xs uppercase tracking-wider bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-300">
 							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Image') }}</th>
 							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Name') }}</th>
+							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Import ID') }}</th>
 							<th class="py-3 px-3 text-left whitespace-nowrap">{{ __('Category') }}</th>
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Initial Qty') }}</th>
 							<th class="py-3 px-3 text-right whitespace-nowrap">{{ __('Remaining') }}</th>
@@ -229,6 +234,7 @@
 									@endif
 								</td>
 								<td class="py-3 px-3 font-medium whitespace-nowrap">{{ $p->name }}</td>
+								<td class="py-3 px-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{{ $p->import_id ?? '-' }}</td>
 								<td class="py-3 px-3 whitespace-nowrap">{{ $p->category?->name ?? '-' }}</td>
 								<td class="py-3 px-3 text-right tabular-nums">{{ $p->initial_qty }}</td>
 								<td class="py-3 px-3 text-right tabular-nums">{{ $p->remaining_qty }}</td>
