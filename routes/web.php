@@ -17,7 +17,6 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\BalanceController;
 use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TestingProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\MediaBuyerController;
@@ -38,23 +37,24 @@ Route::get('/', function () {
 		return redirect()->route('media-buyer.dashboard');
 	}
 
-	// Redirect regular users to dashboard
+	// Accounts without an operational role are sent to the pending page.
 	return redirect()->route('dashboard');
 });
 
-Route::get('/dashboard', function(\Illuminate\Http\Request $request) {
+Route::get('/dashboard', function () {
 	// Redirect superadmin to admin dashboard
 	if (auth()->user()->hasRole('superadmin')) {
 		return redirect()->route('admin.dashboard');
 	}
-	
+
 	// Redirect media buyers to their dashboard
 	if (auth()->user()->hasRole('media_buyer')) {
 		return redirect()->route('media-buyer.dashboard');
 	}
-	
-	// Regular users see dashboard
-	return app(DashboardController::class)->index($request);
+
+	// Anyone else (no role, or a role that does not have its own area) must
+	// not see company financial totals. They can still sign out.
+	return response()->view('auth.pending', [], 403);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 // Serve storage files (workaround for Windows symlink issues)

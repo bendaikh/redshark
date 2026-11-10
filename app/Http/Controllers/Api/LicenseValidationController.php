@@ -18,9 +18,12 @@ use Illuminate\Support\Facades\Log;
 class LicenseValidationController extends Controller
 {
     /**
-     * Validate a license key
+     * Validate a license key.
+     *
+     * Named validateLicense so it does not override Controller::validate(),
+     * which fatals on PHP 8 when this class is loaded with the routes.
      */
-    public function validate(Request $request)
+    public function validateLicense(Request $request)
     {
         $request->validate([
             'license_key' => 'required|string',
