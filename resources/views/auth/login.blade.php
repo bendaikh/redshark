@@ -53,16 +53,11 @@
 			@enderror
 		</div>
 
-		<div class="flex items-center justify-between">
+		<div class="flex items-center">
 			<label for="remember_me" class="inline-flex items-center gap-2">
 				<input id="remember_me" type="checkbox" name="remember" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800">
 				<span class="text-sm text-gray-700 dark:text-gray-300">{{ __('Remember me') }}</span>
 			</label>
-			@if (Route::has('password.request'))
-				<a href="{{ route('password.request') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
-					{{ __('Forgot password?') }}
-				</a>
-			@endif
 		</div>
 
 		<button
@@ -72,11 +67,4 @@
 			{{ __('Sign in') }}
 		</button>
 	</form>
-
-	@if (Route::has('register'))
-		<p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-			{{ __("Don't have an account?") }}
-			<a href="{{ route('register') }}" class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">{{ __('Create one') }}</a>
-		</p>
-	@endif
 </x-guest-layout>

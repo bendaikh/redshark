@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('license')->group(function () {
     // License validation endpoint (called by clients periodically)
-    Route::post('/validate', [LicenseValidationController::class, 'validate'])
+    Route::post('/validate', [LicenseValidationController::class, 'validateLicense'])
         ->name('api.license.validate');
 
     // License activation endpoint (called when client first installs)

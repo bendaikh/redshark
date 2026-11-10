@@ -15,6 +15,12 @@ class AuthenticationTest extends TestCase
         $response = $this->get('/login');
 
         $response->assertStatus(200);
+        $response->assertSee('Sign in');
+        $response->assertDontSee('Create one', false);
+        $response->assertDontSee("Don't have an account?", false);
+        $response->assertDontSee('Forgot password?', false);
+        $response->assertDontSee('/register', false);
+        $response->assertDontSee('/forgot-password', false);
     }
 
     public function test_users_can_authenticate_using_the_login_screen(): void
